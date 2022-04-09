@@ -34,6 +34,11 @@ class Sudoku:
 
         self.cells[cell_index(y, x)] = value
 
+    def place_cell(self, i: int, value: int):
+        self.cells[i] = value
+        self.candidates[i] = set()
+        self.eliminate_candidates(value, i)
+
     def unset_cell(self, y: int, x: int):
         self.set_cell(y, x, 0)
 
@@ -101,7 +106,11 @@ class Sudoku:
         self.candidates[i] = candidates
         return candidates
 
-    def solve_naked_single(self):
+    def solve_naked_singles(self):
+        '''
+            Solve naked singles in all cells.   
+            Can solve: Easy
+        '''
         i = 0
         cnt = 0
         for i in range(81):
@@ -109,22 +118,28 @@ class Sudoku:
                 candidates = list(self.candidates[i])
                 if len(candidates) == 1:
                     cnt += 1
-                    self.cells[i] = candidates[0]
-                    self.eliminate_candidates(candidates[0], i)
-                    continue
-        print("Solved naked single:", cnt)
+                    self.place_cell(i, candidates[0])
         if cnt > 0:
-            self.solve_naked_single()
+            self.solve_naked_singles()
 
-    def solve_hidden_single(self):
+    def solve_hidden_singles(self):
+        '''
+            Solve hidden singles in row, column and box.
+            Superior to solve_naked_singles()
+            Can solve: Medium
+        '''
         cnt = 0
-        for i in range(8):
-            cnt += self.solve_hidden_single_of_indices(box_indices(i))
-            cnt += self.solve_hidden_single_of_indices(row_indices(i))
-            cnt += self.solve_hidden_single_of_indices(column_indices(i))
-        print("Solved hidden single:", cnt)
+        for i in range(9):
+            cnt += self.solve_hidden_singles_of_indices(box_indices(i))
+            cnt += self.solve_hidden_singles_of_indices(row_indices(i))
+            cnt += self.solve_hidden_singles_of_indices(column_indices(i))
+        if cnt > 0:
+            self.solve_hidden_singles()
 
-    def solve_hidden_single_of_indices(self, indices: List[str]):
+    def solve_hidden_singles_of_indices(self, indices: List[str]):
+        '''
+            Find a cell with unique candidate in a list of cells.
+        '''
         candidates_sets: List[Set[int]] = [self.candidates[i] for i in indices if len(self.candidates[i]) >= 1]
 
         if len(candidates_sets) == 0:
@@ -132,29 +147,28 @@ class Sudoku:
 
         cnt = 0
         for i in indices:
-            other_candidates = set.union(*(s for s in candidates_sets if s is not self.candidates[i]))
+            other_sets = [s for s in candidates_sets if s is not self.candidates[i]] or [set()]
+            other_candidates = set.union(*other_sets)
             unique_candidates = self.candidates[i] - other_candidates
             if len(unique_candidates) == 1:
                 cnt += 1
-                self.cells[i] = unique_candidates.pop()
+                self.place_cell(i, unique_candidates.pop())
         return cnt
 
     def solve(self):
-        print("Sudoku:")
         self.display_state()
         self.compute_candidates()
-        self.solve_naked_single()
-        self.display_state()
-        self.compute_candidates()
-        self.solve_hidden_single()
+        # self.solve_naked_single()
+        # self.display_state()
+        self.solve_hidden_singles()
         self.display_state()
 
     def display_state(self):
         self.display()
         if not self.valid:
-            print("Sudoku invalid!")
+            print("Invalid!")
         if self.solved:
-            print("Sudoku solved!")
+            print("Solved!")
 
     @property
     def valid(self):
