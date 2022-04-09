@@ -60,11 +60,11 @@ class TestSudoku:
         assert sudoku.box(8) == [2, 0, 0, 0, 0, 0, 0, 0, 3]
 
     def test_candidates(self, sudoku: Sudoku):
-        assert sudoku.candidates(0) == {2, 5, 8, 9}
-        assert sudoku.candidates(8) == {5, 8, 9}
+        assert sudoku.compute_candidates(0) == {2, 5, 8, 9}
+        assert sudoku.compute_candidates(8) == {5, 8, 9}
 
         blank_sudoku = Sudoku()
-        assert blank_sudoku.candidates(0) == {1, 2, 3, 4, 5, 6, 7, 8, 9}
+        assert blank_sudoku.compute_candidates(0) == {1, 2, 3, 4, 5, 6, 7, 8, 9}
 
     def test_valid(self, sudoku: Sudoku):
         assert sudoku.valid

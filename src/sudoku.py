@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Set
 
 from src.exceptions import InvalidCellValue, InvalidSudoku
 
@@ -8,6 +8,7 @@ class Sudoku:
         if cells is None:
             cells = [0] * 81
         self.set_cells(cells)
+        self.candidates = [set() for _ in range(81)]
 
     def set_cells(self, cells: List[int]):
         if len(cells) != 81:
@@ -72,33 +73,67 @@ class Sudoku:
                 print("|", end=" ")
         print()
 
-    def candidates(self, i: int):
+    def compute_candidates(self, i: int = None):
+        if i is None:
+            for i in range(81):
+                self.compute_candidates(i)
+            return
         y, x, b = position(i)
+        if self.cells[i] != 0:
+            return
         row = set(self.row(y))
         column = set(self.column(x))
         box = set(self.box(b))
         candidates = {1, 2, 3, 4, 5, 6, 7, 8, 9}
         candidates = candidates - row - column - box
+        self.candidates[i] = candidates
         return candidates
 
-    def solve_unique_candidates(self):
+    def solve_naked_single(self):
         i = 0
         cnt = 0
         while i < 81:
             if self.cells[i] == 0:
-                candidates = self.candidates(i)
+                candidates = self.compute_candidates(i)
                 if len(candidates) == 1:
                     cnt += 1
                     self.cells[i] = candidates.pop()
                     i = 0
                     continue
             i += 1
-        print("Solved unique candidates:", cnt)
+        print("Solved naked single:", cnt)
+
+    def solve_hidden_single(self):
+        cnt = 0
+        for i in range(8):
+            # cnt += self.solve_hidden_single_of_indices(box_indices(i))
+            # cnt += self.solve_hidden_single_of_indices(row_indices(i))
+            cnt += self.solve_hidden_single_of_indices(column_indices(i))
+        print("Solved hidden single:", cnt)
+
+    def solve_hidden_single_of_indices(self, indices: List[str]):
+        candidates_sets: List[Set[int]] = [self.candidates[i] for i in indices if len(self.candidates[i]) >= 1]
+
+        if len(candidates_sets) == 0:
+            return 0
+
+        cnt = 0
+        for i in indices:
+            other_candidates = set.union(*(s for s in candidates_sets if s is not self.candidates[i]))
+            unique_candidates = self.candidates[i] - other_candidates
+            if len(unique_candidates) == 1:
+                cnt += 1
+                self.cells[i] = unique_candidates.pop()
+        return cnt
 
     def solve(self):
         print("Sudoku:")
         self.display_state()
-        self.solve_unique_candidates()
+        self.compute_candidates()
+        self.solve_naked_single()
+        self.display_state()
+        self.compute_candidates()
+        self.solve_hidden_single()
         self.display_state()
 
     def display_state(self):
@@ -147,6 +182,24 @@ def position(i: int):
     x = i % 9
     box = y // 3 * 3 + x // 3
     return y, x, box
+
+
+def row_indices(y: int):
+    return [y * 9 + i for i in range(9)]
+
+
+def column_indices(x: int):
+    return [i * 9 + x for i in range(9)]
+
+
+def box_indices(n: int):
+    block_y = n // 3
+    block_x = n % 3
+    x_start = block_x * 3
+    x_end = x_start + 3
+    y_start = block_y * 3
+    y_end = y_start + 3
+    return [cell_index(y, x) for y in range(y_start, y_end) for x in range(x_start, x_end)]
 
 
 def load_cells_from_file(filename: str):
