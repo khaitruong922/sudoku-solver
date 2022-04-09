@@ -160,8 +160,12 @@ class Sudoku:
         self.compute_candidates()
         # self.solve_naked_single()
         # self.display_state()
+        print("Solving hidden singles...")
         self.solve_hidden_singles()
         self.display_state()
+
+        print()
+        return self
 
     def display_state(self):
         self.display()
