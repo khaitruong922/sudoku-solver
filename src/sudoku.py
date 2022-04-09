@@ -62,6 +62,18 @@ class Sudoku:
                 print("------+-------+------")
         print()
 
+    def eliminate_candidates(self, value: int, i: int = None, y: int = None, x: int = None, b: int = None):
+        if value == 0:
+            return
+        if i is not None:
+            y, x, b = position(i)
+        for k in box_indices(b):
+            self.candidates[k].discard(value)
+        for k in row_indices(y):
+            self.candidates[k].discard(value)
+        for k in column_indices(x):
+            self.candidates[k].discard(value)
+
     def display_row(self, y: int):
         row = self.row(y)
         for i in range(3):
@@ -92,22 +104,23 @@ class Sudoku:
     def solve_naked_single(self):
         i = 0
         cnt = 0
-        while i < 81:
+        for i in range(81):
             if self.cells[i] == 0:
-                candidates = self.compute_candidates(i)
+                candidates = list(self.candidates[i])
                 if len(candidates) == 1:
                     cnt += 1
-                    self.cells[i] = candidates.pop()
-                    i = 0
+                    self.cells[i] = candidates[0]
+                    self.eliminate_candidates(candidates[0], i)
                     continue
-            i += 1
         print("Solved naked single:", cnt)
+        if cnt > 0:
+            self.solve_naked_single()
 
     def solve_hidden_single(self):
         cnt = 0
         for i in range(8):
-            # cnt += self.solve_hidden_single_of_indices(box_indices(i))
-            # cnt += self.solve_hidden_single_of_indices(row_indices(i))
+            cnt += self.solve_hidden_single_of_indices(box_indices(i))
+            cnt += self.solve_hidden_single_of_indices(row_indices(i))
             cnt += self.solve_hidden_single_of_indices(column_indices(i))
         print("Solved hidden single:", cnt)
 
