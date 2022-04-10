@@ -20,86 +20,66 @@ class Sudoku:
 
         self.cells = cells
 
-    def get_cell(self, y: int, x: int):
-        return self.cells[cell_index(y, x)]
+    def get_cell(self, r: int, c: int):
+        return self.cells[cell_index(r, c)]
 
-    def set_cell(self, y: int, x: int, value: int):
+    def set_cell(self, r: int, c: int, value: int):
         if not valid_cell_value(value):
             raise InvalidCellValue()
 
         new_sudoku = Sudoku(self.cells.copy())
-        new_sudoku.cells[cell_index(y, x)] = value
+        new_sudoku.cells[cell_index(r, c)] = value
         if not new_sudoku.valid:
             return
 
-        self.cells[cell_index(y, x)] = value
+        self.cells[cell_index(r, c)] = value
 
     def place_cell(self, i: int, value: int):
         self.cells[i] = value
         self.candidates[i] = set()
         self.eliminate_candidates(value, i)
 
-    def unset_cell(self, y: int, x: int):
-        self.set_cell(y, x, 0)
+    def unset_cell(self, r: int, c: int):
+        self.set_cell(r, c, 0)
 
-    def row(self, y: int):
-        return self.cells[y * 9:y * 9 + 9]
+    def row(self, r: int):
+        return self.cells[r * 9:r * 9 + 9]
 
-    def column(self, x: int):
-        return self.cells[x::9]
+    def column(self, c: int):
+        return self.cells[c::9]
 
     def box(self, n: int):
-        block_y = n // 3
-        block_x = n % 3
-        x_start = block_x * 3
-        x_end = x_start + 3
+        block_r = n // 3
+        block_c = n % 3
+        c_start = block_c * 3
+        c_end = c_start + 3
         cells = []
-        for y in range(block_y * 3, block_y * 3 + 3):
-            cells.extend(self.row(y)[x_start:x_end])
+        for r in range(block_r * 3, block_r * 3 + 3):
+            cells.extend(self.row(r)[c_start:c_end])
         return cells
 
-    def display(self):
-        for y1 in range(3):
-            for y2 in range(3):
-                y = y1 * 3 + y2
-                self.display_row(y)
-            if y1 < 2:
-                print("------+-------+------")
-        print()
-
-    def eliminate_candidates(self, value: int, i: int = None, y: int = None, x: int = None, b: int = None):
+    def eliminate_candidates(self, value: int, i: int = None, r: int = None, c: int = None, b: int = None):
         if value == 0:
             return
         if i is not None:
-            y, x, b = position(i)
+            r, c, b = position(i)
         for k in box_indices(b):
             self.candidates[k].discard(value)
-        for k in row_indices(y):
+        for k in row_indices(r):
             self.candidates[k].discard(value)
-        for k in column_indices(x):
+        for k in column_indices(c):
             self.candidates[k].discard(value)
-
-    def display_row(self, y: int):
-        row = self.row(y)
-        for i in range(3):
-            for j in range(3):
-                s = str(row[i * 3 + j])
-                s = s.replace("0", "_")
-                print(s, end=" ")
-            if i < 2:
-                print("|", end=" ")
-        print()
 
     def compute_candidates(self, i: int = None):
         if i is None:
             for i in range(81):
                 self.compute_candidates(i)
             return
-        y, x, b = position(i)
+        r, c, b = position(i)
         if self.cells[i] != 0:
             return
-        row = set(self.row(y))
-        column = set(self.column(x))
+        row = set(self.row(r))
+        column = set(self.column(c))
         box = set(self.box(b))
         candidates = {1, 2, 3, 4, 5, 6, 7, 8, 9}
         candidates = candidates - row - column - box
@@ -205,38 +185,66 @@ class Sudoku:
         sudoku.set_cells(load_cells_from_file(filename))
         return sudoku
 
+    def display(self):
+        for y1 in range(3):
+            for y2 in range(3):
+                r = y1 * 3 + y2
+                self.display_row(r)
+            if y1 < 2:
+                print("------+-------+------")
+        print()
+
+    def display_row(self, r: int):
+        row = self.row(r)
+        for i in range(3):
+            for j in range(3):
+                s = str(row[i * 3 + j])
+                s = s.replace("0", "_")
+                print(s, end=" ")
+            if i < 2:
+                print("|", end=" ")
+        print()
+
+    def display_candidates(self):
+        for r in range(9):
+            for c in range(9):
+                i = cell_index(r, c)
+                print(self.candidates[i], end=" ")
+                pass
+            print()
+
 
 def valid_cell_value(n: int):
     return n >= 0 and n <= 9
 
 
-def cell_index(y: int, x: int):
-    return y * 9 + x
+def cell_index(r: int, c: int):
+    return r * 9 + c
 
 
 def position(i: int):
-    y = i // 9
-    x = i % 9
-    box = y // 3 * 3 + x // 3
-    return y, x, box
+    r = i // 9
+    c = i % 9
+    b = r // 3 * 3 + c // 3
+    return r, c, b
 
 
-def row_indices(y: int):
-    return [y * 9 + i for i in range(9)]
+def row_indices(r: int):
+    return [r * 9 + i for i in range(9)]
 
 
-def column_indices(x: int):
-    return [i * 9 + x for i in range(9)]
+def column_indices(c: int):
+    return [i * 9 + c for i in range(9)]
 
 
-def box_indices(n: int):
-    block_y = n // 3
-    block_x = n % 3
-    x_start = block_x * 3
-    x_end = x_start + 3
-    y_start = block_y * 3
-    y_end = y_start + 3
-    return [cell_index(y, x) for y in range(y_start, y_end) for x in range(x_start, x_end)]
+def box_indices(b: int):
+    block_y = b // 3
+    block_x = b % 3
+    c_start = block_x * 3
+    c_end = c_start + 3
+    r_start = block_y * 3
+    r_end = r_start + 3
+    return [cell_index(r, c) for r in range(r_start, r_end) for c in range(c_start, c_end)]
 
 
 def load_cells_from_file(filename: str):
