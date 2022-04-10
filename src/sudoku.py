@@ -147,12 +147,18 @@ class Sudoku:
 
         cnt = 0
         for i in indices:
-            other_sets = [s for s in candidates_sets if s is not self.candidates[i]] or [set()]
-            other_candidates = set.union(*other_sets)
-            unique_candidates = self.candidates[i] - other_candidates
-            if len(unique_candidates) == 1:
+            if self.cells[i] != 0:
+                continue
+            candidates = set(self.candidates[i])
+
+            if len(candidates) > 1:
+                other_sets = [s for s in candidates_sets if s is not self.candidates[i]] or [set()]
+                other_candidates = set.union(*other_sets)
+                candidates -= other_candidates
+
+            if len(candidates) == 1:
                 cnt += 1
-                self.place_cell(i, unique_candidates.pop())
+                self.place_cell(i, candidates.pop())
         return cnt
 
     def solve(self):
