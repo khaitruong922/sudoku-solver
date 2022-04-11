@@ -13,3 +13,6 @@ if __name__ == '__main__':
     print("Expert")
     s4 = sudoku_expert().solve()
     s4.display_candidates()
+    print("Evil")
+    s5 = sudoku_evil().solve()
+    s5.display_candidates()
