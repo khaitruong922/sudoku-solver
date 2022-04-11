@@ -4,7 +4,7 @@ An attempt to build a Sudoku algorithm with elimination techniques (without back
 
 ## Current progress
 
-Techniques: naked single, hidden single, hidden rows / columns, hidden subsets.
+Techniques: Hidden Singles, Pointing Pair, Naked Subset, Hidden Subset
 
 Can solve up to Expert in https://sudoku.com/
 
