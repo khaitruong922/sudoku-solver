@@ -23,20 +23,6 @@ class Sudoku:
 
         self.cells = cells
 
-    def get_cell(self, r: int, c: int):
-        return self.cells[cell_index(r, c)]
-
-    def set_cell(self, r: int, c: int, value: int):
-        if not valid_cell_value(value):
-            raise InvalidCellValue()
-
-        new_sudoku = Sudoku(self.cells.copy())
-        new_sudoku.cells[cell_index(r, c)] = value
-        if not new_sudoku.valid:
-            return
-
-        self.cells[cell_index(r, c)] = value
-
     def place_cell(self, i: int, value: int):
         self.cells[i] = value
         self.candidates[i] = set()

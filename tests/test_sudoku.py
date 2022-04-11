@@ -19,23 +19,6 @@ def sudoku():
 
 
 class TestSudoku:
-
-    def test_get_cell(self, sudoku: Sudoku):
-        assert sudoku.get_cell(0, 0) == 0
-        assert sudoku.get_cell(8, 8) == 3
-
-    def test_set_cell(self, sudoku: Sudoku):
-        with pytest.raises(InvalidCellValue):
-            sudoku.set_cell(0, 0, 10)
-        with pytest.raises(InvalidCellValue):
-            sudoku.set_cell(0, 0, -1)
-
-        sudoku.set_cell(0, 0, 1)
-        assert sudoku.get_cell(0, 0) == 0
-
-        sudoku.set_cell(0, 0, 2)
-        assert sudoku.get_cell(0, 0) == 2
-
     def test_set_cells(self, sudoku: Sudoku):
         with pytest.raises(InvalidSudoku):
             sudoku.set_cells([0] * 80)
