@@ -92,7 +92,7 @@ _ _ _ | 1 _ 9 | 6 _ _
 4 1 9 | 3 6 8 | 7 2 5
 5 3 7 | 1 2 9 | 6 4 8
 
-✅ Sudoku Expert solved!
+✅ Sudoku Expert solved in 0.0082 seconds!
 ```
 
 ```

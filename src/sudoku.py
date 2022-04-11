@@ -1,7 +1,6 @@
 from itertools import combinations
 from typing import Dict, Iterable, List, Set
-
-
+from timeit import default_timer as timer
 from src.util import *
 from src.exceptions import InvalidCellValue, InvalidSudoku
 
@@ -243,10 +242,12 @@ class Sudoku:
             return
         self.display()
         print(f"⌛ Solving {self.name}...")
+        start = timer()
         self.solve()
+        end = timer()
         self.display()
         if self.solved:
-            print(f"✅ {self.name} solved!")
+            print(f"✅ {self.name} solved in {end - start:.4f} seconds!")
         else:
             print(f"❌ Failed to solve {self.name}.")
         if not self.valid:
