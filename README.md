@@ -1,6 +1,6 @@
 # Sudoku Solver
 
-An attempt to build a Sudoku algorithm with elimination techniques (without backtracking)
+An attempt to build a Sudoku algorithm using elimination techniques (no backtracking)
 
 # Techniques
 
