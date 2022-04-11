@@ -63,6 +63,9 @@ def query_indices(r: int = None, c: int = None, b: int = None) -> List[int]:
             r += r_start
             c_start = b % 3 * 3
             c_end = c_start + 3
+            if c is not None:
+                c += c_start
+                return [cell_index(r, c)]
             return row_indices(r)[c_start:c_end]
         return row_indices(r)
     if c is not None:
