@@ -12,7 +12,7 @@ def sudoku_easy():
         6, 4, 0, 8, 1, 3, 2, 0, 0,
         0, 0, 0, 6, 0, 7, 0, 0, 0,
         0, 0, 0, 5, 9, 0, 0, 0, 3,
-    ])
+    ], name="Sudoku Easy")
 
 
 def sudoku_medium():
@@ -26,7 +26,7 @@ def sudoku_medium():
         0, 5, 0, 8, 0, 3, 2, 1, 0,
         0, 0, 4, 0, 1, 9, 0, 0, 3,
         0, 3, 0, 0, 6, 0, 0, 0, 0,
-    ])
+    ], name="Sudoku Medium")
 
 
 def sudoku_hard():
@@ -40,7 +40,7 @@ def sudoku_hard():
         2, 0, 0, 0, 0, 7, 0, 4, 0,
         0, 0, 1, 0, 0, 8, 9, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0,
-    ])
+    ], name="Sudoku Hard")
 
 
 def sudoku_expert():
@@ -54,7 +54,7 @@ def sudoku_expert():
         0, 0, 0, 4, 0, 0, 1, 0, 0,
         0, 0, 0, 0, 0, 0, 7, 2, 5,
         0, 0, 0, 1, 0, 9, 6, 0, 0,
-    ])
+    ], name="Sudoku Expert")
 
 
 def sudoku_evil():
@@ -68,4 +68,4 @@ def sudoku_evil():
         0, 0, 0, 2, 0, 0, 9, 0, 0,
         7, 0, 0, 0, 0, 0, 0, 0, 0,
         6, 0, 5, 0, 4, 0, 0, 2, 0,
-    ])
+    ], name="Sudoku Evil")

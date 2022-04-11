@@ -7,11 +7,12 @@ from src.exceptions import InvalidCellValue, InvalidSudoku
 
 
 class Sudoku:
-    def __init__(self, cells: List[int] = None):
+    def __init__(self, cells: List[int] = None, name: str = "Sudoku"):
         if cells is None:
             cells = [0] * 81
         self.set_cells(cells)
         self.candidates = [set() for _ in range(81)]
+        self.name = name
 
     def set_cells(self, cells: List[int]):
         if len(cells) != 81:
@@ -93,66 +94,46 @@ class Sudoku:
         self.candidates[i] = candidates
         return candidates
 
-    def solve_naked_singles(self):
-        '''
-            Solve naked singles in all cells. Repeat until no more naked singles are found.
-
-            Can solve up to `Easy`
-        '''
-        i = 0
-        cnt = 0
-        for i in range(81):
-            if self.cells[i] == 0:
-                candidates = list(self.candidates[i])
-                if len(candidates) == 1:
-                    cnt += 1
-                    self.place_cell(i, candidates[0])
-        if cnt > 0:
-            self.solve_naked_singles()
-
     def solve_hidden_singles(self):
         '''
             Solve hidden singles in row, column and box. Repeat until no more hidden singles are found.
-
-            Superior to `solve_naked_singles`
-
-            Can solve up to `Medium`
         '''
+
+        def solve_hidden_singles_of_indices(indices: List[str]):
+            '''
+                Find a cell with unique candidate in a list of cells.
+            '''
+            candidates_sets: List[Set[int]] = [self.candidates[i] for i in indices if len(self.candidates[i]) >= 1]
+
+            if len(candidates_sets) == 0:
+                return 0
+
+            cnt = 0
+            for i in indices:
+                if self.cells[i] != 0:
+                    continue
+                candidates = set(self.candidates[i])
+
+                # Check if it has a unique candidate in the box
+                if len(candidates) > 1:
+                    other_sets = [s for s in candidates_sets if s is not self.candidates[i]] or [set()]
+                    other_candidates = set.union(*other_sets)
+                    candidates -= other_candidates
+
+                # If it has a unique candidate, place it
+                if len(candidates) == 1:
+                    cnt += 1
+                    self.place_cell(i, candidates.pop())
+            return cnt
+
         cnt = 0
         for i in range(9):
-            cnt += self.solve_hidden_singles_of_indices(box_indices(i))
-            cnt += self.solve_hidden_singles_of_indices(row_indices(i))
-            cnt += self.solve_hidden_singles_of_indices(column_indices(i))
+            cnt += solve_hidden_singles_of_indices(box_indices(i))
+            cnt += solve_hidden_singles_of_indices(row_indices(i))
+            cnt += solve_hidden_singles_of_indices(column_indices(i))
 
         if cnt > 0:
-            self.solve_hidden_singles()
-        return cnt
-
-    def solve_hidden_singles_of_indices(self, indices: List[str]):
-        '''
-            Find a cell with unique candidate in a list of cells.
-        '''
-        candidates_sets: List[Set[int]] = [self.candidates[i] for i in indices if len(self.candidates[i]) >= 1]
-
-        if len(candidates_sets) == 0:
-            return 0
-
-        cnt = 0
-        for i in indices:
-            if self.cells[i] != 0:
-                continue
-            candidates = set(self.candidates[i])
-
-            # Check if it has a unique candidate in the box
-            if len(candidates) > 1:
-                other_sets = [s for s in candidates_sets if s is not self.candidates[i]] or [set()]
-                other_candidates = set.union(*other_sets)
-                candidates -= other_candidates
-
-            # If it has a unique candidate, place it
-            if len(candidates) == 1:
-                cnt += 1
-                self.place_cell(i, candidates.pop())
+            cnt += self.solve_hidden_singles()
         return cnt
 
     def count_candidates(self, indices: Iterable[int]) -> Dict[int, int]:
@@ -163,7 +144,7 @@ class Sudoku:
                 d[n] = d.get(n, 0) + 1
         return d
 
-    def eliminate_hidden_directions(self):
+    def eliminate_pointing_pair(self):
         """
             For each column in each box, check if they have numbers that does not belong to other columns in the box,
             then eliminate candidates of that number in that column of other boxes.
@@ -196,34 +177,17 @@ class Sudoku:
                     if box_candidates_count[k] == v:
                         self.eliminate_candidates_of_indices(other_cb_indices, k)
 
-    def solve_hidden_directions(self):
-        """
-            Use eliminate_hidden_directions to eliminate candidates in each row and column, then use solve_hidden_singles.
-            Repeat until no more squares can be solved.
-
-            Superior to `solve_hidden_singles`
-
-            Can solve up to `Hard`
-        """
-        self.eliminate_hidden_directions()
-        cnt = self.solve_hidden_singles()
-        if cnt > 0:
-            self.solve_hidden_directions()
-        return cnt
-
     def eliminate_hidden_subsets(self):
         """
-            For each box, check for each subset of size k from `2` to `blank cells - 1`, if it has k candidates that do not belong other cells in the box, 
-            eliminate all other candidates that are belong to other cells in the box.
+            For each area (box, column or row), check for each subset of size k from 2 to 4, if it has k candidates that do not belong other cells in the area, 
+            eliminate all other candidates that are belong to other cells in the area.
         """
-        for b in range(9):
-            bi = [i for i in box_indices(b) if self.cells[i] == 0]
-            # Check for subset of size from 2 to (blank cells - 1)
-            for size in range(2, len(bi)):
-                indices_subsets = list(combinations(bi, size))
+        def eliminate_hidden_subsets_of_indices(indices: List[str]):
+            for size in range(2, min(4, len(indices))):
+                indices_subsets = list(combinations(indices, size))
                 for subset_indices in indices_subsets:
                     subset_candidates = set.union(*[self.candidates[i] for i in subset_indices])
-                    other_indices = list(set(bi) - set(subset_indices))
+                    other_indices = list(set(indices) - set(subset_indices))
                     other_candidates = set.union(*[self.candidates[i] for i in other_indices])
                     subset_unique_candidates = subset_candidates - other_candidates
                     # If the subset (size k) has k candidates that does not belong to other cells, eliminate other candidates in the subset that belong to other cells.
@@ -231,26 +195,51 @@ class Sudoku:
                         for candidate in other_candidates:
                             self.eliminate_candidates_of_indices(subset_indices, candidate)
 
-    def solve_hidden_subsets(self):
-        """
-            Use eliminate_hidden_subsets to eliminate candidates in a box, then use solve_hidden_directions.
-            Repeat until no more squares can be solved.
+        for x in range(9):
+            bi = [i for i in box_indices(x) if self.cells[i] == 0]
+            ri = [i for i in row_indices(x) if self.cells[i] == 0]
+            ci = [i for i in column_indices(x) if self.cells[i] == 0]
+            eliminate_hidden_subsets_of_indices(bi)
+            eliminate_hidden_subsets_of_indices(ri)
+            eliminate_hidden_subsets_of_indices(ci)
 
-            Superior to `solve_hidden_directions`
-
-            Can solve up to `Expert`
+    def eliminate_naked_subsets(self):
         """
+            For each area (box, column or row), check for naked subset of size k from 2 to 4. If it has k candidates, then eliminate those candidates from other cells in the area.
+        """
+        def eliminate_naked_subsets_of_indices(indices: List[str]):
+            for size in range(2, min(4, len(indices))):
+                indices_subsets = list(combinations(indices, size))
+                for subset_indices in indices_subsets:
+                    subset_candidates = set.union(*[self.candidates[i] for i in subset_indices])
+                    if len(subset_candidates) == size:
+                        other_indices = list(set(indices) - set(subset_indices))
+                        for candidate in subset_candidates:
+                            self.eliminate_candidates_of_indices(other_indices, candidate)
+
+        for x in range(9):
+            bi = [i for i in box_indices(x) if self.cells[i] == 0]
+            ri = [i for i in row_indices(x) if self.cells[i] == 0]
+            ci = [i for i in column_indices(x) if self.cells[i] == 0]
+            eliminate_naked_subsets_of_indices(bi)
+            eliminate_naked_subsets_of_indices(ri)
+            eliminate_naked_subsets_of_indices(ci)
+
+    def solve(self, compute_candidates=True):
+        if compute_candidates:
+            self.compute_candidates()
+        self.eliminate_pointing_pair()
         self.eliminate_hidden_subsets()
-        cnt = self.solve_hidden_directions()
+        self.eliminate_naked_subsets()
+        cnt = self.solve_hidden_singles()
         if cnt > 0:
-            self.solve_hidden_subsets()
-        return cnt
+            self.solve(compute_candidates=False)
 
-    def solve(self):
+    def solve_and_display(self):
+        print(self.name)
         self.display_state()
-        self.compute_candidates()
-        print("Solving...")
-        self.solve_hidden_subsets()
+        print(f"Solving {self.name}...")
+        self.solve()
         self.display_state()
         print()
         return self
@@ -322,4 +311,4 @@ class Sudoku:
         if not self.valid:
             print("Invalid!")
         if self.solved:
-            print("Solved!")
+            print(f'{self.name} solved!')
