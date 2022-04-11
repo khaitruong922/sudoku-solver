@@ -1,3 +1,4 @@
+from itertools import combinations
 from typing import Dict, Iterable, List, Set
 
 
@@ -164,7 +165,7 @@ class Sudoku:
 
     def eliminate_hidden_directions(self):
         """
-            For each column in each box, check if they have numbers that does not belong to other columns in the box, 
+            For each column in each box, check if they have numbers that does not belong to other columns in the box,
             then eliminate candidates of that number in that column of other boxes.
 
             Same applied for rows.
@@ -197,7 +198,7 @@ class Sudoku:
 
     def solve_hidden_directions(self):
         """
-            Use eliminate_hidden_directions to eliminate candidates in each row and column, then use solve_hidden_singles. 
+            Use eliminate_hidden_directions to eliminate candidates in each row and column, then use solve_hidden_singles.
             Repeat until no more squares can be solved.
 
             Superior to `solve_hidden_singles`
@@ -210,11 +211,46 @@ class Sudoku:
             self.solve_hidden_directions()
         return cnt
 
+    def eliminate_hidden_subsets(self):
+        """
+            For each box, check for each subset of size k from `2` to `blank cells - 1`, if it has k candidates that do not belong other cells in the box, 
+            eliminate all other candidates that are belong to other cells in the box.
+        """
+        for b in range(9):
+            bi = [i for i in box_indices(b) if self.cells[i] == 0]
+            # Check for subset of size from 2 to (blank cells - 1)
+            for size in range(2, len(bi)):
+                indices_subsets = list(combinations(bi, size))
+                for subset_indices in indices_subsets:
+                    subset_candidates = set.union(*[self.candidates[i] for i in subset_indices])
+                    other_indices = list(set(bi) - set(subset_indices))
+                    other_candidates = set.union(*[self.candidates[i] for i in other_indices])
+                    subset_unique_candidates = subset_candidates - other_candidates
+                    # If the subset (size k) has k candidates that does not belong to other cells, eliminate other candidates in the subset that belong to other cells.
+                    if len(subset_unique_candidates) == size:
+                        for candidate in other_candidates:
+                            self.eliminate_candidates_of_indices(subset_indices, candidate)
+
+    def solve_hidden_subsets(self):
+        """
+            Use eliminate_hidden_subsets to eliminate candidates in a box, then use solve_hidden_directions.
+            Repeat until no more squares can be solved.
+
+            Superior to `solve_hidden_directions`
+
+            Can solve up to `Expert`
+        """
+        self.eliminate_hidden_subsets()
+        cnt = self.solve_hidden_directions()
+        if cnt > 0:
+            self.solve_hidden_subsets()
+        return cnt
+
     def solve(self):
         self.display_state()
         self.compute_candidates()
         print("Solving...")
-        self.solve_hidden_directions()
+        self.solve_hidden_subsets()
         self.display_state()
         print()
         return self
