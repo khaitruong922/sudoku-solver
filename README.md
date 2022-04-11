@@ -4,12 +4,12 @@ An attempt to build a Sudoku algorithm with elimination techniques (without back
 
 # Techniques
 
-- Hidden Singles
+- Hidden Single
 - Pointing Pair
 - Naked Subset
 - Hidden Subset
 
-More techniques should be implemented in the future.
+More techniques will be implemented in the future.
 
 Can solve up to Expert in https://sudoku.com/
 
