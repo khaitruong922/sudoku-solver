@@ -2,19 +2,24 @@
 
 An attempt to build a Sudoku algorithm with elimination techniques (without backtracking)
 
-## Current progress
+# Techniques
 
-Techniques: Hidden Singles, Pointing Pair, Naked Subset, Hidden Subset
+- Hidden Singles
+- Pointing Pair
+- Naked Subset
+- Hidden Subset
+
+More techniques should be implemented in the future.
 
 Can solve up to Expert in https://sudoku.com/
 
-## Instructions
+# Instructions
 
-### Run project
+## Run project
 
 python -m src.main
 
-### Solve Sudoku
+## Solve Sudoku
 
 Create a Sudoku using 1D array of 81 digits.
 
@@ -56,4 +61,36 @@ Then solve
 
 ```python
 sudoku.solve()
+```
+
+## Sample output
+
+```
+🔢 Sudoku Expert
+6 _ _ | _ _ _ | _ 5 _
+9 _ _ | 8 3 _ | _ _ _
+_ _ 1 | _ _ _ | _ _ 3
+------+-------+------
+_ _ _ | _ _ 2 | _ _ _
+_ 5 _ | _ _ 7 | _ _ 6
+_ 7 2 | _ 1 _ | _ _ _
+------+-------+------
+_ _ _ | 4 _ _ | 1 _ _
+_ _ _ | _ _ _ | 7 2 5
+_ _ _ | 1 _ 9 | 6 _ _
+
+⌛ Solving Sudoku Expert...
+6 4 3 | 7 9 1 | 8 5 2
+9 2 5 | 8 3 6 | 4 7 1
+7 8 1 | 2 5 4 | 9 6 3
+------+-------+------
+1 9 6 | 5 4 2 | 3 8 7
+3 5 4 | 9 8 7 | 2 1 6
+8 7 2 | 6 1 3 | 5 9 4
+------+-------+------
+2 6 8 | 4 7 5 | 1 3 9
+4 1 9 | 3 6 8 | 7 2 5
+5 3 7 | 1 2 9 | 6 4 8
+
+✅ Sudoku Expert solved!
 ```

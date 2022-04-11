@@ -237,11 +237,20 @@ class Sudoku:
         return self
 
     def solve_and_display(self):
-        print(self.name)
-        self.display_state()
-        print(f"Solving {self.name}...")
+        print(f"🔢 {self.name}")
+        if not self.valid:
+            print(f"❗ Invalid {self.name}!")
+            return
+        self.display()
+        print(f"⌛ Solving {self.name}...")
         self.solve()
-        self.display_state()
+        self.display()
+        if self.solved:
+            print(f"✅ {self.name} solved!")
+        else:
+            print(f"❌ Failed to solve {self.name}.")
+        if not self.valid:
+            print(f"❗ Invalid {self.name}!")
         print()
         return self
 
@@ -306,10 +315,3 @@ class Sudoku:
                 print()
             if r1 < 2:
                 print("-" * 33 + "+" + "-" * 34 + "+" + "-" * 33)
-
-    def display_state(self):
-        self.display()
-        if not self.valid:
-            print("Invalid!")
-        if self.solved:
-            print(f'{self.name} solved!')
