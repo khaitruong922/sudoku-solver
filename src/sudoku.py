@@ -234,6 +234,7 @@ class Sudoku:
         cnt = self.solve_hidden_singles()
         if cnt > 0:
             self.solve(compute_candidates=False)
+        return self
 
     def solve_and_display(self):
         print(self.name)
