@@ -34,7 +34,7 @@ sudoku = Sudoku([
 
 or load from a text file with 9 lines, each has 9 digits.
 
-```
+```{data-filename="sudoku.txt"}
 003020600
 900305001
 001806400
