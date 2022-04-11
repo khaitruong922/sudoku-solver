@@ -1,5 +1,7 @@
-from typing import List, Set
+from typing import Dict, Iterable, List, Set
 
+
+from src.util import *
 from src.exceptions import InvalidCellValue, InvalidSudoku
 
 
@@ -63,12 +65,16 @@ class Sudoku:
             return
         if i is not None:
             r, c, b = position(i)
-        for k in box_indices(b):
-            self.candidates[k].discard(value)
-        for k in row_indices(r):
-            self.candidates[k].discard(value)
-        for k in column_indices(c):
-            self.candidates[k].discard(value)
+        if r is not None:
+            self.eliminate_candidates_of_indices(row_indices(r), value)
+        if c is not None:
+            self.eliminate_candidates_of_indices(column_indices(c), value)
+        if b is not None:
+            self.eliminate_candidates_of_indices(box_indices(b), value)
+
+    def eliminate_candidates_of_indices(self, indices: List[str], value: int):
+        for i in indices:
+            self.candidates[i].discard(value)
 
     def compute_candidates(self, i: int = None):
         if i is None:
@@ -88,8 +94,9 @@ class Sudoku:
 
     def solve_naked_singles(self):
         '''
-            Solve naked singles in all cells.   
-            Can solve: Easy
+            Solve naked singles in all cells. Repeat until no more naked singles are found.
+
+            Can solve up to `Easy`
         '''
         i = 0
         cnt = 0
@@ -104,9 +111,11 @@ class Sudoku:
 
     def solve_hidden_singles(self):
         '''
-            Solve hidden singles in row, column and box.
-            Superior to solve_naked_singles()
-            Can solve: Medium
+            Solve hidden singles in row, column and box. Repeat until no more hidden singles are found.
+
+            Superior to `solve_naked_singles`
+
+            Can solve up to `Medium`
         '''
         cnt = 0
         for i in range(9):
@@ -115,6 +124,7 @@ class Sudoku:
             cnt += self.solve_hidden_singles_of_indices(column_indices(i))
         if cnt > 0:
             self.solve_hidden_singles()
+        return cnt
 
     def solve_hidden_singles_of_indices(self, indices: List[str]):
         '''
@@ -141,24 +151,70 @@ class Sudoku:
                 self.place_cell(i, candidates.pop())
         return cnt
 
+    def count_candidates(self, indices: Iterable[int]) -> Dict[int, int]:
+        d = {}
+        sets = [self.candidates[i] for i in indices]
+        for s in sets:
+            for n in s:
+                d[n] = d.get(n, 0) + 1
+        return d
+
+    def eliminate_hidden_directions(self):
+        """
+            For each column in each box, check if they have numbers that does not belong to other columns in the box, 
+            then eliminate candidates of that number in that column of other boxes.
+
+            Same applied for rows.
+        """
+        for b in range(9):
+            bi = box_indices(b)
+            box_candidates_count = self.count_candidates(bi)
+            for _r in range(3):
+                rbi = query_indices(r=_r, b=b)
+                r = b // 3 * 3 + _r
+                ri = row_indices(r=r)
+                rb_candidates_count = self.count_candidates(rbi)
+                other_rb_indices = list(set(ri) - set(rbi))
+                for k, v in rb_candidates_count.items():
+                    if box_candidates_count[k] == v:
+                        self.eliminate_candidates_of_indices(other_rb_indices, k)
+
+            for _c in range(3):
+                cbi = query_indices(c=_c, b=b)
+                c = b % 3 * 3 + _c
+                ci = column_indices(c=c)
+                cb_candidates_count = self.count_candidates(cbi)
+                other_cb_indices = list(set(ci) - set(cbi))
+                for k, v in cb_candidates_count.items():
+                    if box_candidates_count[k] == v:
+                        self.eliminate_candidates_of_indices(other_cb_indices, k)
+
+    def solve_hidden_directions(self):
+        """
+            Use eliminate_hidden_directions to eliminate candidates in each row and column, then use solve_hidden_singles. 
+            Repeat until no more squares can be solved.
+
+            Superior to `solve_hidden_singles`
+
+            Can solve up to `Hard`
+        """
+        cnt = 0
+        self.eliminate_hidden_directions()
+        cnt += self.solve_hidden_singles()
+
+        if cnt > 0:
+            self.solve_hidden_directions()
+        return cnt
+
     def solve(self):
         self.display_state()
         self.compute_candidates()
-        # self.solve_naked_single()
-        # self.display_state()
-        print("Solving hidden singles...")
-        self.solve_hidden_singles()
+        print("Solving")
+        self.solve_hidden_directions()
         self.display_state()
 
         print()
         return self
-
-    def display_state(self):
-        self.display()
-        if not self.valid:
-            print("Invalid!")
-        if self.solved:
-            print("Solved!")
 
     @property
     def valid(self):
@@ -186,11 +242,11 @@ class Sudoku:
         return sudoku
 
     def display(self):
-        for y1 in range(3):
-            for y2 in range(3):
-                r = y1 * 3 + y2
+        for r1 in range(3):
+            for r2 in range(3):
+                r = r1 * 3 + r2
                 self.display_row(r)
-            if y1 < 2:
+            if r1 < 2:
                 print("------+-------+------")
         print()
 
@@ -206,59 +262,25 @@ class Sudoku:
         print()
 
     def display_candidates(self):
-        for r in range(9):
-            for c in range(9):
-                i = cell_index(r, c)
-                print(self.candidates[i], end=" ")
-                pass
-            print()
+        def display_set(i: int):
+            print("".join(str(n) for n in self.candidates[i]).center(10), end=" ")
+        for r1 in range(3):
+            for r2 in range(3):
+                r = r1 * 3 + r2
+                for c1 in range(3):
+                    for c2 in range(3):
+                        c = c1 * 3 + c2
+                        i = cell_index(r, c)
+                        display_set(i)
+                    if c1 < 2:
+                        print("|", end=" ")
+                print()
+            if r1 < 2:
+                print("-" * 33 + "+" + "-" * 34 + "+" + "-" * 33)
 
-
-def valid_cell_value(n: int):
-    return n >= 0 and n <= 9
-
-
-def cell_index(r: int, c: int):
-    return r * 9 + c
-
-
-def position(i: int):
-    r = i // 9
-    c = i % 9
-    b = r // 3 * 3 + c // 3
-    return r, c, b
-
-
-def row_indices(r: int):
-    return [r * 9 + i for i in range(9)]
-
-
-def column_indices(c: int):
-    return [i * 9 + c for i in range(9)]
-
-
-def box_indices(b: int):
-    block_y = b // 3
-    block_x = b % 3
-    c_start = block_x * 3
-    c_end = c_start + 3
-    r_start = block_y * 3
-    r_end = r_start + 3
-    return [cell_index(r, c) for r in range(r_start, r_end) for c in range(c_start, c_end)]
-
-
-def load_cells_from_file(filename: str):
-    cells = []
-    with open(filename, 'r') as f:
-        lines = f.readlines()
-        if len(lines) != 9:
-            raise ValueError('File must contain exactly 9 lines')
-        for line in lines:
-            line = line.replace(" ", "").strip()
-            if len(line) != 9:
-                raise ValueError('Each line must contain exactly 9 numbers')
-            for c in line:
-                if not c.isdigit():
-                    raise ValueError('Each cell must be a number')
-                cells.append(int(c))
-    return cells
+    def display_state(self):
+        self.display()
+        if not self.valid:
+            print("Invalid!")
+        if self.solved:
+            print("Solved!")

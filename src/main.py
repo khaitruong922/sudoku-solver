@@ -10,4 +10,3 @@ if __name__ == '__main__':
     s2 = sudoku_medium().solve()
     print("Hard")
     s3 = sudoku_hard().solve()
-    s3.display_candidates()
