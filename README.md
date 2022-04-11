@@ -63,7 +63,7 @@ Then solve
 sudoku.solve()
 ```
 
-## Sample output
+# Sample output
 
 ```
 🔢 Sudoku Expert
