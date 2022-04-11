@@ -122,6 +122,7 @@ class Sudoku:
             cnt += self.solve_hidden_singles_of_indices(box_indices(i))
             cnt += self.solve_hidden_singles_of_indices(row_indices(i))
             cnt += self.solve_hidden_singles_of_indices(column_indices(i))
+
         if cnt > 0:
             self.solve_hidden_singles()
         return cnt
@@ -141,11 +142,13 @@ class Sudoku:
                 continue
             candidates = set(self.candidates[i])
 
+            # Check if it has a unique candidate in the box
             if len(candidates) > 1:
                 other_sets = [s for s in candidates_sets if s is not self.candidates[i]] or [set()]
                 other_candidates = set.union(*other_sets)
                 candidates -= other_candidates
 
+            # If it has a unique candidate, place it
             if len(candidates) == 1:
                 cnt += 1
                 self.place_cell(i, candidates.pop())
@@ -169,6 +172,8 @@ class Sudoku:
         for b in range(9):
             bi = box_indices(b)
             box_candidates_count = self.count_candidates(bi)
+
+            # Scan rows in box
             for _r in range(3):
                 rbi = query_indices(r=_r, b=b)
                 r = b // 3 * 3 + _r
@@ -179,6 +184,7 @@ class Sudoku:
                     if box_candidates_count[k] == v:
                         self.eliminate_candidates_of_indices(other_rb_indices, k)
 
+            # Scan columns in box
             for _c in range(3):
                 cbi = query_indices(c=_c, b=b)
                 c = b % 3 * 3 + _c
@@ -198,10 +204,8 @@ class Sudoku:
 
             Can solve up to `Hard`
         """
-        cnt = 0
         self.eliminate_hidden_directions()
-        cnt += self.solve_hidden_singles()
-
+        cnt = self.solve_hidden_singles()
         if cnt > 0:
             self.solve_hidden_directions()
         return cnt
@@ -209,10 +213,9 @@ class Sudoku:
     def solve(self):
         self.display_state()
         self.compute_candidates()
-        print("Solving")
+        print("Solving...")
         self.solve_hidden_directions()
         self.display_state()
-
         print()
         return self
 

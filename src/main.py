@@ -1,4 +1,4 @@
-from src.data import sudoku_easy, sudoku_hard, sudoku_medium
+from src.difficulties import *
 from src.sudoku import Sudoku
 
 
@@ -10,3 +10,6 @@ if __name__ == '__main__':
     s2 = sudoku_medium().solve()
     print("Hard")
     s3 = sudoku_hard().solve()
+    print("Expert")
+    s4 = sudoku_expert().solve()
+    s4.display_candidates()
