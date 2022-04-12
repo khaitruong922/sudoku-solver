@@ -19,7 +19,7 @@ Can solve up to Expert in https://sudoku.com/
 
 ## Run project
 
-python -m src.main
+python main.py
 
 ## Solve Sudoku
 
@@ -95,7 +95,7 @@ _ _ _ | 1 _ 9 | 6 _ _
 5 3 7 | 1 2 9 | 6 4 8
 
 Sudoku Expert: 59 cells solved
-✅ Sudoku Expert solved in 0.0562 seconds!
+✅ Sudoku Expert solved in 0.0368 seconds!
 ```
 
 ```

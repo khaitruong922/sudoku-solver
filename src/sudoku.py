@@ -124,8 +124,6 @@ class Sudoku:
             cnt += solve_hidden_singles_of_indices(row_indices(i))
             cnt += solve_hidden_singles_of_indices(column_indices(i))
 
-        if cnt > 0:
-            cnt += self.solve_hidden_singles()
         return cnt
 
     def count_candidates(self, indices: Iterable[int]) -> Dict[int, int]:
@@ -169,8 +167,6 @@ class Sudoku:
                 for k, v in cb_candidates_count.items():
                     if box_candidates_count[k] == v:
                         cnt += self.eliminate_candidates_of_indices(other_cb_indices, k)
-        if cnt > 0:
-            cnt += self.eliminate_pointing_pair()
         return cnt
 
     def eliminate_hidden_subsets(self):
@@ -202,8 +198,6 @@ class Sudoku:
             cnt += eliminate_hidden_subsets_of_indices(ri)
             cnt += eliminate_hidden_subsets_of_indices(ci)
 
-        if cnt > 0:
-            cnt += self.eliminate_hidden_subsets()
         return cnt
 
     def eliminate_naked_subsets(self):
@@ -231,8 +225,6 @@ class Sudoku:
             cnt += eliminate_naked_subsets_of_indices(ri)
             cnt += eliminate_naked_subsets_of_indices(ci)
 
-        if cnt > 0:
-            cnt += self.eliminate_naked_subsets()
         return cnt
 
     def eliminate_x_wings(self):
@@ -288,8 +280,6 @@ class Sudoku:
                             r2i = set(row_indices(r2)) - {cell_index(r2, c1), cell_index(r2, c2)}
                             cnt += self.eliminate_candidates_of_indices(r1i | r2i, k)
 
-        if cnt > 0:
-            cnt += self.eliminate_x_wings()
         return cnt
 
     def eliminate_y_wings(self):
@@ -387,18 +377,23 @@ class Sudoku:
                         candidate_to_eliminiate
                     )
 
-        if cnt > 0:
-            cnt += self.eliminate_y_wings()
         return cnt
+
+    def eliminate_with_all_techniques(self):
+        elim_cnt = 0
+        elim_cnt += self.eliminate_pointing_pair()
+        elim_cnt += self.eliminate_naked_subsets()
+        elim_cnt += self.eliminate_hidden_subsets()
+        elim_cnt += self.eliminate_x_wings()
+        elim_cnt += self.eliminate_y_wings()
+        if elim_cnt > 0:
+            elim_cnt += self.eliminate_with_all_techniques()
+        return elim_cnt
 
     def solve(self, compute_candidates=True):
         if compute_candidates:
             self.compute_candidates()
-        self.eliminate_pointing_pair()
-        self.eliminate_hidden_subsets()
-        self.eliminate_naked_subsets()
-        self.eliminate_x_wings()
-        self.eliminate_y_wings()
+        self.eliminate_with_all_techniques()
         cnt = self.solve_hidden_singles()
         if cnt > 0:
             cnt += self.solve(compute_candidates=False)
