@@ -352,7 +352,7 @@ class Sudoku:
 
             pincers_rc = product(pincers_column, pincers_row)
             pincers_rb = product(pincers_row, pincers_box)
-            pincers_cb = product(pincers_box, pincers_column)
+            pincers_cb = product(pincers_column, pincers_box)
 
             cnt = 0
 
