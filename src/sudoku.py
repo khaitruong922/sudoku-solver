@@ -241,6 +241,7 @@ class Sudoku:
                             c2i = set(column_indices(c2)) - {cell_index(r1, c2), cell_index(r2, c2)}
                             self.eliminate_candidates_of_indices(c1i | c2i, k)
 
+        # Detect x-wing in columns
         for c1 in range(8):
             indices = [i for i in column_indices(c1) if self.cells[i] == 0]
             rows = [i // 9 for i in indices]
