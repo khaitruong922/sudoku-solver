@@ -1,31 +1,31 @@
 
-from typing import List
+from typing import List, Tuple
 
 
-def valid_cell_value(n: int):
+def valid_cell_value(n: int) -> bool:
     return n >= 0 and n <= 9
 
 
-def cell_index(r: int, c: int):
+def cell_index(r: int, c: int) -> int:
     return r * 9 + c
 
 
-def position(i: int):
+def position(i: int) -> Tuple[int, int, int]:
     r = i // 9
     c = i % 9
     b = r // 3 * 3 + c // 3
     return r, c, b
 
 
-def row_indices(r: int):
+def row_indices(r: int) -> List[int]:
     return [r * 9 + i for i in range(9)]
 
 
-def column_indices(c: int):
+def column_indices(c: int) -> List[int]:
     return [i * 9 + c for i in range(9)]
 
 
-def box_indices(b: int):
+def box_indices(b: int) -> List[int]:
     box_y = b // 3
     box_x = b % 3
     c_start = box_x * 3
@@ -35,7 +35,7 @@ def box_indices(b: int):
     return [cell_index(r, c) for r in range(r_start, r_end) for c in range(c_start, c_end)]
 
 
-def load_cells_from_file(filename: str):
+def load_cells_from_file(filename: str) -> List[int]:
     cells = []
     with open(filename, 'r') as f:
         lines = f.readlines()

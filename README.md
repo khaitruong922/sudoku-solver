@@ -8,6 +8,7 @@ An attempt to build a Sudoku algorithm using elimination techniques (no backtrac
 - Pointing Pair
 - Naked Subset
 - Hidden Subset
+- X-Wing
 
 More techniques will be implemented in the future.
 

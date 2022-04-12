@@ -13,6 +13,9 @@ class Sudoku:
         self.candidates = [set() for _ in range(81)]
         self.name = name
 
+    def get_cell(self, r: int, c: int) -> int:
+        return self.cells[cell_index(r, c)]
+
     def set_cells(self, cells: List[int]):
         if len(cells) != 81:
             raise InvalidSudoku()
@@ -59,7 +62,7 @@ class Sudoku:
         if b is not None:
             self.eliminate_candidates_of_indices(box_indices(b), value)
 
-    def eliminate_candidates_of_indices(self, indices: List[str], value: int):
+    def eliminate_candidates_of_indices(self, indices: Iterable[int], value: int):
         for i in indices:
             self.candidates[i].discard(value)
 
@@ -210,12 +213,64 @@ class Sudoku:
             eliminate_naked_subsets_of_indices(ri)
             eliminate_naked_subsets_of_indices(ci)
 
+    def eliminate_x_wings(self):
+        """
+            Detect x-wing in row or column then eliminate that candidate from intersecting cells.
+        """
+        # Detect x-wing in rows
+        for r1 in range(8):
+            indices = [i for i in row_indices(r1) if self.cells[i] == 0]
+            columns = [i % 9 for i in indices]
+            candidates_count = self.count_candidates(indices)
+            column_combs = list(combinations(columns, 2))
+            for k, v in candidates_count.items():
+                if v != 2:
+                    continue
+                for c1, c2 in column_combs:
+                    # Skip if the two columns are in the same box
+                    if c1 // 3 == c2 // 3:
+                        continue
+                    if k not in self.candidates[cell_index(r1, c1)] or k not in self.candidates[cell_index(r1, c2)]:
+                        continue
+                    for r2 in range(r1 // 3 * 3 + 3, 9):
+                        if k not in self.candidates[cell_index(r2, c1)] or k not in self.candidates[cell_index(r2, c2)]:
+                            continue
+                        other_row_candidates_count = self.count_candidates(row_indices(r2))
+                        if other_row_candidates_count.get(k, 0) == 2:
+                            c1i = set(column_indices(c1)) - {cell_index(r1, c1), cell_index(r2, c1)}
+                            c2i = set(column_indices(c2)) - {cell_index(r1, c2), cell_index(r2, c2)}
+                            self.eliminate_candidates_of_indices(c1i | c2i, k)
+
+        for c1 in range(8):
+            indices = [i for i in column_indices(c1) if self.cells[i] == 0]
+            rows = [i // 9 for i in indices]
+            candidates_count = self.count_candidates(indices)
+            row_combs = list(combinations(rows, 2))
+            for k, v in candidates_count.items():
+                if v != 2:
+                    continue
+                for r1, r2 in row_combs:
+                    # Skip if the two rows are in the same box
+                    if r1 // 3 == r2 // 3:
+                        continue
+                    if k not in self.candidates[cell_index(r1, c1)] or k not in self.candidates[cell_index(r2, c1)]:
+                        continue
+                    for c2 in range(c1 // 3 * 3 + 3, 9):
+                        if k not in self.candidates[cell_index(r1, c2)] or k not in self.candidates[cell_index(r2, c2)]:
+                            continue
+                        other_column_candidates_count = self.count_candidates(column_indices(c2))
+                        if other_column_candidates_count.get(k, 0) == 2:
+                            r1i = set(row_indices(r1)) - {cell_index(r1, c1), cell_index(r1, c2)}
+                            r2i = set(row_indices(r2)) - {cell_index(r2, c1), cell_index(r2, c2)}
+                            self.eliminate_candidates_of_indices(r1i | r2i, k)
+
     def solve(self, compute_candidates=True):
         if compute_candidates:
             self.compute_candidates()
         self.eliminate_pointing_pair()
         self.eliminate_hidden_subsets()
         self.eliminate_naked_subsets()
+        self.eliminate_x_wings()
         cnt = self.solve_hidden_singles()
         if cnt > 0:
             self.solve(compute_candidates=False)
