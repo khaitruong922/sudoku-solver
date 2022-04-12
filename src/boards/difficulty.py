@@ -1,5 +1,9 @@
 from src.sudoku import Sudoku
 
+"""
+    Sudoku boards classified by difficulty.
+"""
+
 
 def sudoku_easy():
     return Sudoku([
