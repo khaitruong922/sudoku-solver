@@ -1,5 +1,9 @@
 from src.sudoku import Sudoku
 
+"""
+    Sudoku boards classified by technique.
+"""
+
 
 def sudoku_x_wing():
     return Sudoku([
