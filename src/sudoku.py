@@ -218,7 +218,7 @@ class Sudoku:
             Detect x-wing in row or column then eliminate that candidate from intersecting cells.
         """
         # Detect x-wing in rows
-        for r1 in range(8):
+        for r1 in range(6):
             indices = [i for i in row_indices(r1) if self.cells[i] == 0]
             columns = [i % 9 for i in indices]
             candidates_count = self.count_candidates(indices)
@@ -242,7 +242,7 @@ class Sudoku:
                             self.eliminate_candidates_of_indices(c1i | c2i, k)
 
         # Detect x-wing in columns
-        for c1 in range(8):
+        for c1 in range(6):
             indices = [i for i in column_indices(c1) if self.cells[i] == 0]
             rows = [i // 9 for i in indices]
             candidates_count = self.count_candidates(indices)
