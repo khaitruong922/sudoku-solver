@@ -9,6 +9,7 @@ An attempt to build a Sudoku algorithm using elimination techniques (no backtrac
 - Naked Subset
 - Hidden Subset
 - X-Wing
+- Y-Wing
 
 More techniques will be implemented in the future.
 
@@ -93,7 +94,8 @@ _ _ _ | 1 _ 9 | 6 _ _
 4 1 9 | 3 6 8 | 7 2 5
 5 3 7 | 1 2 9 | 6 4 8
 
-✅ Sudoku Expert solved in 0.0082 seconds!
+Sudoku Expert: 59 cells solved
+✅ Sudoku Expert solved in 0.0562 seconds!
 ```
 
 ```
@@ -123,5 +125,6 @@ _ 9 _ | _ 1 _ | _ _ _
 7 2 9 | 6 _ _ | _ _ _
 6 3 5 | _ 4 _ | _ 2 _
 
+Sudoku Evil: 15 cells solved
 ❌ Failed to solve Sudoku Evil.
 ```

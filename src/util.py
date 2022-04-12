@@ -13,8 +13,12 @@ def cell_index(r: int, c: int) -> int:
 def position(i: int) -> Tuple[int, int, int]:
     r = i // 9
     c = i % 9
-    b = r // 3 * 3 + c // 3
+    b = box_of(r, c)
     return r, c, b
+
+
+def box_of(r: int, c: int) -> int:
+    return r // 3 * 3 + c // 3
 
 
 def row_indices(r: int) -> List[int]:
