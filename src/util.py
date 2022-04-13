@@ -42,13 +42,23 @@ def column_indices(c: int) -> List[int]:
 
 
 def box_indices(b: int) -> List[int]:
-    box_y = b // 3
-    box_x = b % 3
-    c_start = box_x * 3
+    box_r = b // 3
+    box_c = b % 3
+    c_start = box_c * 3
     c_end = c_start + 3
-    r_start = box_y * 3
+    r_start = box_r * 3
     r_end = r_start + 3
     return [cell_index(r, c) for r in range(r_start, r_end) for c in range(c_start, c_end)]
+
+
+def rows_of_box(b: int) -> List[int]:
+    box_start_r = b // 3 * 3
+    return [box_start_r + i for i in range(3)]
+
+
+def columns_of_box(b: int) -> List[int]:
+    box_start_c = b % 3 * 3
+    return [box_start_c + i for i in range(3)]
 
 
 def load_cells_from_file(filename: str) -> List[int]:

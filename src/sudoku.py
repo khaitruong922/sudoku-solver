@@ -153,9 +153,9 @@ class Sudoku:
             box_candidates_count = self.count_candidates(bi)
 
             # Scan rows in box
-            for _r in range(3):
-                rbi = query_indices(r=_r, b=b)
-                r = b // 3 * 3 + _r
+            for br in range(3):
+                rbi = query_indices(r=br, b=b)
+                r = b // 3 * 3 + br
                 ri = row_indices(r=r)
                 rb_candidates_count = self.count_candidates(rbi)
                 other_rb_indices = list(set(ri) - set(rbi))
@@ -165,9 +165,9 @@ class Sudoku:
                             other_rb_indices, k)
 
             # Scan columns in box
-            for _c in range(3):
-                cbi = query_indices(c=_c, b=b)
-                c = b % 3 * 3 + _c
+            for bc in range(3):
+                cbi = query_indices(c=bc, b=b)
+                c = b % 3 * 3 + bc
                 ci = column_indices(c=c)
                 cb_candidates_count = self.count_candidates(cbi)
                 other_cb_indices = list(set(ci) - set(cbi))
@@ -214,6 +214,45 @@ class Sudoku:
                 b = _boxes.pop()
                 bi = set(box_indices(b)) - _indices
                 cnt += self.eliminate_candidates_of_indices(bi, k)
+
+        return cnt
+
+    def box_box_reduction(self) -> int:
+        """
+            For each 2 boxes in same direction, if they have a candidate only lies within 2 rows (or columns), remove candidates of that number from 2 rows in the other box.
+        """
+        cnt = 0
+        for x in range(1, 10):
+            # Check horizontal boxes
+            for k in range(3):
+                boxes = set(k * 3 + i for i in range(3))
+                pairs = [set(pair) for pair in combinations(boxes, 2)]
+                for pair in pairs:
+                    b1, b2 = pair
+                    rb1 = set(row_of(i) for i in box_indices(b1) if x in self.candidates[i])
+                    rb2 = set(row_of(i) for i in box_indices(b2) if x in self.candidates[i])
+                    rows = rb1 | rb2
+                    if len(rb1) == 0 or len(rb2) == 0 or len(rows) != 2:
+                        continue
+                    other_box_i = (boxes - pair).pop()
+                    indices = [i for i in box_indices(other_box_i) if row_of(i) in rb1]
+                    cnt += self.eliminate_candidates_of_indices(indices, x)
+
+            # Check vertical boxes
+            for k in range(3):
+                boxes = set(k + i * 3 for i in range(3))
+                pairs = [set(pair) for pair in combinations(boxes, 2)]
+                for pair in pairs:
+                    b1, b2 = pair
+                    cb1 = set(column_of(i) for i in box_indices(b1) if x in self.candidates[i])
+                    cb2 = set(column_of(i) for i in box_indices(b2) if x in self.candidates[i])
+                    columns = cb1 | cb2
+                    if len(cb1) == 0 or len(cb2) == 0 or len(columns) != 2:
+                        continue
+
+                    other_box_i = (boxes - pair).pop()
+                    indices = [i for i in box_indices(other_box_i) if column_of(i) in columns]
+                    cnt += self.eliminate_candidates_of_indices(indices, x)
 
         return cnt
 
@@ -457,6 +496,7 @@ class Sudoku:
         cnt = 0
         cnt += self.pointing_pair()
         cnt += self.box_line_reduction()
+        cnt += self.box_box_reduction()
         cnt += self.naked_subsets()
         cnt += self.hidden_subsets()
         cnt += self.y_wing()

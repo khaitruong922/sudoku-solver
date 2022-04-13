@@ -16,7 +16,21 @@ def sudoku_box_line_reduction():
         0, 6, 0, 9, 0, 0, 0, 2, 0,
         0, 8, 0, 0, 0, 2, 9, 3, 6,
         9, 2, 4, 6, 0, 0, 5, 1, 0,
-    ], name="Sudoku Box Line Reduction")  # Needs Y-Wing to be solved.
+    ], name="Sudoku Box/Line Reduction")  # Needs Y-Wing to be solved.
+
+
+def sudoku_box_box_reduction():
+    return Sudoku([
+        0, 2, 0, 9, 4, 3, 7, 1, 5,
+        9, 0, 4, 0, 0, 0, 6, 0, 0,
+        7, 5, 0, 0, 0, 0, 0, 4, 0,
+        5, 0, 0, 4, 8, 0, 0, 0, 0,
+        2, 0, 0, 0, 0, 0, 4, 5, 3,
+        4, 0, 0, 3, 5, 2, 0, 0, 0,
+        0, 4, 2, 0, 0, 0, 0, 8, 1,
+        0, 0, 5, 0, 0, 4, 2, 6, 0,
+        0, 9, 0, 2, 0, 8, 5, 0, 4,
+    ], name="Sudoku Box/Box Reduction")
 
 
 def sudoku_x_wing():
