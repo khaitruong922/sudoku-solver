@@ -287,7 +287,7 @@ class Sudoku:
         """
         cnt = 0
         # Detect x-wing in rows
-        for r1 in range(6):
+        for r1 in range(8):
             indices = [i for i in row_indices(r1) if self.cells[i] == 0]
             columns = [i % 9 for i in indices]
             candidates_count = self.count_candidates(indices)
@@ -301,7 +301,7 @@ class Sudoku:
                         continue
                     if k not in self.candidates[cell_index(r1, c1)] or k not in self.candidates[cell_index(r1, c2)]:
                         continue
-                    for r2 in range(r1 // 3 * 3 + 3, 9):
+                    for r2 in range(r1 + 1, 9):
                         if k not in self.candidates[cell_index(r2, c1)] or k not in self.candidates[cell_index(r2, c2)]:
                             continue
                         other_row_candidates_count = self.count_candidates(
@@ -315,7 +315,7 @@ class Sudoku:
                                 c1i | c2i, k)
 
         # Detect x-wing in columns
-        for c1 in range(6):
+        for c1 in range(8):
             indices = [i for i in column_indices(c1) if self.cells[i] == 0]
             rows = [i // 9 for i in indices]
             candidates_count = self.count_candidates(indices)
@@ -329,7 +329,7 @@ class Sudoku:
                         continue
                     if k not in self.candidates[cell_index(r1, c1)] or k not in self.candidates[cell_index(r2, c1)]:
                         continue
-                    for c2 in range(c1 // 3 * 3 + 3, 9):
+                    for c2 in range(c1 + 1, 9):
                         if k not in self.candidates[cell_index(r1, c2)] or k not in self.candidates[cell_index(r2, c2)]:
                             continue
                         other_column_candidates_count = self.count_candidates(
