@@ -63,7 +63,7 @@ sudoku = Sudoku.from_file("sudoku.txt")
 Then solve
 
 ```python
-sudoku.solve()
+sudoku.solve_and_display()
 ```
 
 # Sample output
