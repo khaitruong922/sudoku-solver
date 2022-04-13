@@ -1,3 +1,4 @@
+from __future__ import annotations
 from itertools import combinations, product
 from typing import Dict, Iterable, List, Set
 from timeit import default_timer as timer
@@ -34,13 +35,13 @@ class Sudoku:
     def unset_cell(self, r: int, c: int):
         self.set_cell(r, c, 0)
 
-    def row(self, r: int):
+    def row(self, r: int) -> List[int]:
         return self.cells[r * 9:r * 9 + 9]
 
-    def column(self, c: int):
+    def column(self, c: int) -> List[int]:
         return self.cells[c::9]
 
-    def box(self, n: int):
+    def box(self, n: int) -> List[int]:
         block_r = n // 3
         block_c = n % 3
         c_start = block_c * 3
@@ -50,19 +51,22 @@ class Sudoku:
             cells.extend(self.row(r)[c_start:c_end])
         return cells
 
-    def eliminate_candidates(self, value: int, i: int = None, r: int = None, c: int = None, b: int = None):
+    def eliminate_candidates(self, value: int, i: int = None, r: int = None, c: int = None, b: int = None) -> int:
         if value == 0:
-            return
+            return 0
+        cnt = 0
         if i is not None:
             r, c, b = position(i)
         if r is not None:
-            self.eliminate_candidates_of_indices(row_indices(r), value)
+            cnt += self.eliminate_candidates_of_indices(row_indices(r), value)
         if c is not None:
-            self.eliminate_candidates_of_indices(column_indices(c), value)
+            cnt += self.eliminate_candidates_of_indices(
+                column_indices(c), value)
         if b is not None:
-            self.eliminate_candidates_of_indices(box_indices(b), value)
+            cnt += self.eliminate_candidates_of_indices(box_indices(b), value)
+        return cnt
 
-    def eliminate_candidates_of_indices(self, indices: Iterable[int], value: int):
+    def eliminate_candidates_of_indices(self, indices: Iterable[int], value: int) -> int:
         cnt = 0
         for i in indices:
             if value in self.candidates[i]:
@@ -70,7 +74,7 @@ class Sudoku:
                 cnt += 1
         return cnt
 
-    def compute_candidates(self, i: int = None):
+    def compute_candidates(self, i: int = None) -> Set[int]:
         if i is None:
             for i in range(81):
                 self.compute_candidates(i)
@@ -86,12 +90,12 @@ class Sudoku:
         self.candidates[i] = candidates
         return candidates
 
-    def solve_hidden_singles(self):
+    def solve_hidden_singles(self) -> int:
         '''
             Solve hidden singles in row, column and box. Repeat until no more hidden singles are found.
         '''
 
-        def solve_hidden_singles_of_indices(indices: List[str]):
+        def solve_hidden_singles_of_indices(indices: List[str]) -> int:
             '''
                 Find a cell with unique candidate in a list of cells.
             '''
@@ -136,7 +140,7 @@ class Sudoku:
                 d[n] = d.get(n, 0) + 1
         return d
 
-    def eliminate_pointing_pair(self):
+    def eliminate_pointing_pair(self) -> int:
         """
             For each column in each box, check if they have numbers that does not belong to other columns in the box,
             then eliminate candidates of that number in that column of other boxes.
@@ -173,7 +177,7 @@ class Sudoku:
                             other_cb_indices, k)
         return cnt
 
-    def eliminate_box_line_intersection(self):
+    def eliminate_box_line_intersection(self) -> int:
         """
             For each column, if there is a pair or triple in the same box, eliminate that candidate from the rest of the box.
 
@@ -195,7 +199,6 @@ class Sudoku:
                 b = _boxes.pop()
                 bi = set(box_indices(b)) - _indices
                 cnt += self.eliminate_candidates_of_indices(bi, k)
-                print(f"Eliminate {k} from box {b}")
 
         for c in range(9):
             candidate_counts = self.count_candidates(column_indices(c))
@@ -211,17 +214,15 @@ class Sudoku:
                 b = _boxes.pop()
                 bi = set(box_indices(b)) - _indices
                 cnt += self.eliminate_candidates_of_indices(bi, k)
-                print(f"Eliminate {k} from box {b}")
 
-        print("eliminate_box_line_intersection:", cnt)
         return cnt
 
-    def eliminate_hidden_subsets(self):
+    def eliminate_hidden_subsets(self) -> int:
         """
             For each area (box, column or row), check for each subset of size k from 2 to 4, if it has k candidates that do not belong other cells in the area, 
             eliminate all other candidates that are belong to other cells in the area.
         """
-        def eliminate_hidden_subsets_of_indices(indices: List[str]):
+        def eliminate_hidden_subsets_of_indices(indices: List[str]) -> int:
             cnt = 0
             for size in range(2, min(4, len(indices))):
                 indices_subsets = list(combinations(indices, size))
@@ -250,7 +251,7 @@ class Sudoku:
 
         return cnt
 
-    def eliminate_naked_subsets(self):
+    def eliminate_naked_subsets(self) -> int:
         """
             For each area (box, column or row), check for naked subset of size k from 2 to 4. If it has k candidates, then eliminate those candidates from other cells in the area.
         """
@@ -280,7 +281,7 @@ class Sudoku:
 
         return cnt
 
-    def eliminate_x_wings(self):
+    def eliminate_x_wings(self) -> int:
         """
             Detect x-wing in row or column then eliminate that candidate from intersecting cells.
         """
@@ -343,7 +344,7 @@ class Sudoku:
 
         return cnt
 
-    def eliminate_y_wings(self):
+    def eliminate_y_wings(self) -> int:
         cnt = 0
         for i in range(81):
             if self.cells[i] != 0:
@@ -390,7 +391,7 @@ class Sudoku:
             for _r in range(r // 3 * 3, r // 3 * 3 + 3):
                 for _c in range(c // 3 * 3, c // 3 * 3 + 3):
                     # Skip if the two cells are in the same column or row
-                    if _r == r and _c == c:
+                    if _r == r or _c == c:
                         continue
 
                     _i = cell_index(_r, _c)
@@ -445,28 +446,28 @@ class Sudoku:
 
         return cnt
 
-    def eliminate_with_all_techniques(self):
+    def eliminate_using_all_techniques(self) -> int:
         elim_cnt = 0
         elim_cnt += self.eliminate_pointing_pair()
         elim_cnt += self.eliminate_box_line_intersection()
         elim_cnt += self.eliminate_naked_subsets()
         elim_cnt += self.eliminate_hidden_subsets()
         elim_cnt += self.eliminate_x_wings()
-        # elim_cnt += self.eliminate_y_wings()
+        elim_cnt += self.eliminate_y_wings()
         if elim_cnt > 0:
-            elim_cnt += self.eliminate_with_all_techniques()
+            elim_cnt += self.eliminate_using_all_techniques()
         return elim_cnt
 
-    def solve(self, compute_candidates=True):
+    def solve(self, compute_candidates=True) -> int:
         if compute_candidates:
             self.compute_candidates()
-        self.eliminate_with_all_techniques()
+        self.eliminate_using_all_techniques()
         cnt = self.solve_hidden_singles()
         if cnt > 0:
             cnt += self.solve(compute_candidates=False)
         return cnt
 
-    def solve_and_display(self):
+    def solve_and_display(self) -> Sudoku:
         print(f"🔢 {self.name}")
         if not self.valid:
             print(f"❗ Invalid {self.name}!")
@@ -488,7 +489,7 @@ class Sudoku:
         return self
 
     @property
-    def valid(self):
+    def valid(self) -> bool:
         for i in range(9):
             column = [v for v in self.column(i) if v != 0]
             box = [v for v in self.box(i) if v != 0]
@@ -503,7 +504,7 @@ class Sudoku:
         return True
 
     @property
-    def solved(self):
+    def solved(self) -> bool:
         return self.valid and all(v != 0 for v in self.cells)
 
     @classmethod
