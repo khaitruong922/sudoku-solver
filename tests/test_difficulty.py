@@ -1,28 +1,31 @@
 from src.boards.difficulty import *
+from src.sudoku import Sudoku
+
+
+def assert_solved(s: Sudoku):
+    s.solve()
+    assert s.solved
 
 
 class TestDifficulty:
+
     def test_sudoku_easy(self):
-        s = sudoku_easy()
-        s.solve()
-        assert s.solved
+        assert_solved(sudoku_easy())
 
     def test_sudoku_medium(self):
-        s = sudoku_medium()
-        s.solve()
-        assert s.solved
+        assert_solved(sudoku_medium())
 
     def test_sudoku_hard(self):
-        s = sudoku_hard()
-        s.solve()
-        assert s.solved
+        assert_solved(sudoku_hard())
 
     def test_sudoku_expert(self):
-        s = sudoku_expert()
-        s.solve()
-        assert s.solved
+        assert_solved(sudoku_expert())
+
+    def test_sudoku_expert_2(self):
+        assert_solved(sudoku_expert_2())
 
     def test_sudoku_evil(self):
-        s = sudoku_evil()
-        s.solve()
-        assert s.solved
+        assert_solved(sudoku_evil())
+
+    def test_sudoku_evil_2(self):
+        assert_solved(sudoku_evil_2())
