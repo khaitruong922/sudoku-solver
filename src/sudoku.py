@@ -219,7 +219,7 @@ class Sudoku:
 
     def eliminate_hidden_subsets(self) -> int:
         """
-            For each area (box, column or row), check for each subset of size k from 2 to 4, if it has k candidates that do not belong other cells in the area, 
+            For each area (box, column or row), check for each subset of size k from 2 to 4, if it has k candidates that do not belong other cells in the area,
             eliminate all other candidates that are belong to other cells in the area.
         """
         def eliminate_hidden_subsets_of_indices(indices: List[str]) -> int:
@@ -281,67 +281,49 @@ class Sudoku:
 
         return cnt
 
-    def eliminate_x_wings(self) -> int:
+    def eliminate_x_wings(self, n=2) -> int:
         """
             Detect x-wing in row or column then eliminate that candidate from intersecting cells.
         """
         cnt = 0
         # Detect x-wing in rows
-        for r1 in range(8):
-            indices = [i for i in row_indices(r1) if self.cells[i] == 0]
-            columns = [i % 9 for i in indices]
-            candidates_count = self.count_candidates(indices)
-            column_combs = list(combinations(columns, 2))
-            for k, v in candidates_count.items():
-                if v != 2:
+        combs = list(combinations(range(9), n))
+        for x in range(1, 10):
+            for rows in combs:
+                indices = set()
+                skip = False
+                for r in rows:
+                    ri = set(i for i in row_indices(r) if x in self.candidates[i])
+                    indices.update(ri)
+                    if not 2 <= len(ri) <= n:
+                        skip = True
+                        break
+                if skip:
                     continue
-                for c1, c2 in column_combs:
-                    # Skip if the two columns are in the same box
-                    if c1 // 3 == c2 // 3:
-                        continue
-                    if k not in self.candidates[cell_index(r1, c1)] or k not in self.candidates[cell_index(r1, c2)]:
-                        continue
-                    for r2 in range(r1 + 1, 9):
-                        if k not in self.candidates[cell_index(r2, c1)] or k not in self.candidates[cell_index(r2, c2)]:
-                            continue
-                        other_row_candidates_count = self.count_candidates(
-                            row_indices(r2))
-                        if other_row_candidates_count.get(k, 0) == 2:
-                            c1i = set(column_indices(c1)) - \
-                                {cell_index(r1, c1), cell_index(r2, c1)}
-                            c2i = set(column_indices(c2)) - \
-                                {cell_index(r1, c2), cell_index(r2, c2)}
-                            cnt += self.eliminate_candidates_of_indices(
-                                c1i | c2i, k)
+                columns = set(column_of(i) for i in indices)
+                if len(columns) == n:
+                    for c in columns:
+                        _ci = set(i for i in column_indices(c) if row_of(i) not in rows)
+                        cnt += self.eliminate_candidates_of_indices(_ci, x)
 
         # Detect x-wing in columns
-        for c1 in range(8):
-            indices = [i for i in column_indices(c1) if self.cells[i] == 0]
-            rows = [i // 9 for i in indices]
-            candidates_count = self.count_candidates(indices)
-            row_combs = list(combinations(rows, 2))
-            for k, v in candidates_count.items():
-                if v != 2:
+        for x in range(1, 10):
+            for columns in combs:
+                indices = set()
+                skip = False
+                for c in columns:
+                    ci = set(i for i in column_indices(c) if x in self.candidates[i])
+                    indices.update(ci)
+                    if not 2 <= len(ci) <= n:
+                        skip = True
+                        break
+                if skip:
                     continue
-                for r1, r2 in row_combs:
-                    # Skip if the two rows are in the same box
-                    if r1 // 3 == r2 // 3:
-                        continue
-                    if k not in self.candidates[cell_index(r1, c1)] or k not in self.candidates[cell_index(r2, c1)]:
-                        continue
-                    for c2 in range(c1 + 1, 9):
-                        if k not in self.candidates[cell_index(r1, c2)] or k not in self.candidates[cell_index(r2, c2)]:
-                            continue
-                        other_column_candidates_count = self.count_candidates(
-                            column_indices(c2))
-                        if other_column_candidates_count.get(k, 0) == 2:
-                            r1i = set(row_indices(r1)) - \
-                                {cell_index(r1, c1), cell_index(r1, c2)}
-                            r2i = set(row_indices(r2)) - \
-                                {cell_index(r2, c1), cell_index(r2, c2)}
-                            cnt += self.eliminate_candidates_of_indices(
-                                r1i | r2i, k)
-
+                rows = set(row_of(i) for i in indices)
+                if len(rows) == n:
+                    for r in rows:
+                        _ri = set(i for i in row_indices(r) if column_of(i) not in columns)
+                        cnt += self.eliminate_candidates_of_indices(_ri, x)
         return cnt
 
     def eliminate_y_wings(self) -> int:
@@ -361,7 +343,7 @@ class Sudoku:
 
             # Check for pincers in column
             for _r in range(0, 9):
-                _b = box_of(_r, c)
+                _b = box_of_rc(_r, c)
                 # Skip if the two cells are in the same box
                 if _b == b:
                     continue
@@ -375,7 +357,7 @@ class Sudoku:
 
             # Check for pincers in row
             for _c in range(0, 9):
-                _b = box_of(r, _c)
+                _b = box_of_rc(r, _c)
                 # Skip if the two cells are in the same box
                 if _b == b:
                     continue
@@ -488,7 +470,7 @@ class Sudoku:
         print()
         return self
 
-    @property
+    @ property
     def valid(self) -> bool:
         for i in range(9):
             column = [v for v in self.column(i) if v != 0]
@@ -503,11 +485,11 @@ class Sudoku:
                 return False
         return True
 
-    @property
+    @ property
     def solved(self) -> bool:
         return self.valid and all(v != 0 for v in self.cells)
 
-    @classmethod
+    @ classmethod
     def from_file(cls, filename: str):
         sudoku = cls()
         sudoku.set_cells(load_cells_from_file(filename))

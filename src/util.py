@@ -11,13 +11,25 @@ def cell_index(r: int, c: int) -> int:
 
 
 def position(i: int) -> Tuple[int, int, int]:
-    r = i // 9
-    c = i % 9
-    b = box_of(r, c)
+    r = row_of(i)
+    c = column_of(i)
+    b = box_of_rc(r, c)
     return r, c, b
 
 
-def box_of(r: int, c: int) -> int:
+def box_of_i(i: int) -> int:
+    return box_of_rc(row_of(i), column_of(i))
+
+
+def column_of(i: int) -> int:
+    return i % 9
+
+
+def row_of(i: int) -> int:
+    return i // 9
+
+
+def box_of_rc(r: int, c: int) -> int:
     return r // 3 * 3 + c // 3
 
 
