@@ -95,7 +95,8 @@ class Sudoku:
             '''
                 Find a cell with unique candidate in a list of cells.
             '''
-            candidates_sets: List[Set[int]] = [self.candidates[i] for i in indices if len(self.candidates[i]) >= 1]
+            candidates_sets: List[Set[int]] = [self.candidates[i]
+                                               for i in indices if len(self.candidates[i]) >= 1]
 
             if len(candidates_sets) == 0:
                 return 0
@@ -108,7 +109,8 @@ class Sudoku:
 
                 # Check if it has a unique candidate in the box
                 if len(candidates) > 1:
-                    other_sets = [s for s in candidates_sets if s is not self.candidates[i]] or [set()]
+                    other_sets = [
+                        s for s in candidates_sets if s is not self.candidates[i]] or [set()]
                     other_candidates = set.union(*other_sets)
                     candidates -= other_candidates
 
@@ -155,7 +157,8 @@ class Sudoku:
                 other_rb_indices = list(set(ri) - set(rbi))
                 for k, v in rb_candidates_count.items():
                     if box_candidates_count[k] == v:
-                        cnt += self.eliminate_candidates_of_indices(other_rb_indices, k)
+                        cnt += self.eliminate_candidates_of_indices(
+                            other_rb_indices, k)
 
             # Scan columns in box
             for _c in range(3):
@@ -166,7 +169,51 @@ class Sudoku:
                 other_cb_indices = list(set(ci) - set(cbi))
                 for k, v in cb_candidates_count.items():
                     if box_candidates_count[k] == v:
-                        cnt += self.eliminate_candidates_of_indices(other_cb_indices, k)
+                        cnt += self.eliminate_candidates_of_indices(
+                            other_cb_indices, k)
+        return cnt
+
+    def eliminate_box_line_intersection(self):
+        """
+            For each column, if there is a pair or triple in the same box, eliminate that candidate from the rest of the box.
+
+            Same applied for each row.
+        """
+        cnt = 0
+        for r in range(9):
+            candidate_counts = self.count_candidates(row_indices(r))
+            for k, v in candidate_counts.items():
+                if v not in (2, 3):
+                    continue
+                _indices = set(i for i in row_indices(
+                    r) if k in self.candidates[i])
+
+                _positions = [position(i) for i in _indices]
+                _boxes = set(p[2] for p in _positions)
+                if len(_boxes) != 1:
+                    continue
+                b = _boxes.pop()
+                bi = set(box_indices(b)) - _indices
+                cnt += self.eliminate_candidates_of_indices(bi, k)
+                print(f"Eliminate {k} from box {b}")
+
+        for c in range(9):
+            candidate_counts = self.count_candidates(column_indices(c))
+            for k, v in candidate_counts.items():
+                if v not in (2, 3):
+                    continue
+                _indices = set(i for i in column_indices(
+                    c) if k in self.candidates[i])
+                _positions = [position(i) for i in _indices]
+                _boxes = set(p[2] for p in _positions)
+                if len(_boxes) != 1:
+                    continue
+                b = _boxes.pop()
+                bi = set(box_indices(b)) - _indices
+                cnt += self.eliminate_candidates_of_indices(bi, k)
+                print(f"Eliminate {k} from box {b}")
+
+        print("eliminate_box_line_intersection:", cnt)
         return cnt
 
     def eliminate_hidden_subsets(self):
@@ -179,14 +226,17 @@ class Sudoku:
             for size in range(2, min(4, len(indices))):
                 indices_subsets = list(combinations(indices, size))
                 for subset_indices in indices_subsets:
-                    subset_candidates = set.union(*[self.candidates[i] for i in subset_indices])
+                    subset_candidates = set.union(
+                        *[self.candidates[i] for i in subset_indices])
                     other_indices = list(set(indices) - set(subset_indices))
-                    other_candidates = set.union(*[self.candidates[i] for i in other_indices])
+                    other_candidates = set.union(
+                        *[self.candidates[i] for i in other_indices])
                     subset_unique_candidates = subset_candidates - other_candidates
                     # If the subset (size k) has k candidates that does not belong to other cells, eliminate other candidates in the subset that belong to other cells.
                     if len(subset_unique_candidates) == size:
                         for candidate in other_candidates:
-                            cnt += self.eliminate_candidates_of_indices(subset_indices, candidate)
+                            cnt += self.eliminate_candidates_of_indices(
+                                subset_indices, candidate)
             return cnt
 
         cnt = 0
@@ -209,11 +259,14 @@ class Sudoku:
             for size in range(2, min(4, len(indices))):
                 indices_subsets = list(combinations(indices, size))
                 for subset_indices in indices_subsets:
-                    subset_candidates = set.union(*[self.candidates[i] for i in subset_indices])
+                    subset_candidates = set.union(
+                        *[self.candidates[i] for i in subset_indices])
                     if len(subset_candidates) == size:
-                        other_indices = list(set(indices) - set(subset_indices))
+                        other_indices = list(
+                            set(indices) - set(subset_indices))
                         for candidate in subset_candidates:
-                            cnt += self.eliminate_candidates_of_indices(other_indices, candidate)
+                            cnt += self.eliminate_candidates_of_indices(
+                                other_indices, candidate)
             return cnt
 
         cnt = 0
@@ -250,11 +303,15 @@ class Sudoku:
                     for r2 in range(r1 // 3 * 3 + 3, 9):
                         if k not in self.candidates[cell_index(r2, c1)] or k not in self.candidates[cell_index(r2, c2)]:
                             continue
-                        other_row_candidates_count = self.count_candidates(row_indices(r2))
+                        other_row_candidates_count = self.count_candidates(
+                            row_indices(r2))
                         if other_row_candidates_count.get(k, 0) == 2:
-                            c1i = set(column_indices(c1)) - {cell_index(r1, c1), cell_index(r2, c1)}
-                            c2i = set(column_indices(c2)) - {cell_index(r1, c2), cell_index(r2, c2)}
-                            cnt += self.eliminate_candidates_of_indices(c1i | c2i, k)
+                            c1i = set(column_indices(c1)) - \
+                                {cell_index(r1, c1), cell_index(r2, c1)}
+                            c2i = set(column_indices(c2)) - \
+                                {cell_index(r1, c2), cell_index(r2, c2)}
+                            cnt += self.eliminate_candidates_of_indices(
+                                c1i | c2i, k)
 
         # Detect x-wing in columns
         for c1 in range(6):
@@ -274,11 +331,15 @@ class Sudoku:
                     for c2 in range(c1 // 3 * 3 + 3, 9):
                         if k not in self.candidates[cell_index(r1, c2)] or k not in self.candidates[cell_index(r2, c2)]:
                             continue
-                        other_column_candidates_count = self.count_candidates(column_indices(c2))
+                        other_column_candidates_count = self.count_candidates(
+                            column_indices(c2))
                         if other_column_candidates_count.get(k, 0) == 2:
-                            r1i = set(row_indices(r1)) - {cell_index(r1, c1), cell_index(r1, c2)}
-                            r2i = set(row_indices(r2)) - {cell_index(r2, c1), cell_index(r2, c2)}
-                            cnt += self.eliminate_candidates_of_indices(r1i | r2i, k)
+                            r1i = set(row_indices(r1)) - \
+                                {cell_index(r1, c1), cell_index(r1, c2)}
+                            r2i = set(row_indices(r2)) - \
+                                {cell_index(r2, c1), cell_index(r2, c2)}
+                            cnt += self.eliminate_candidates_of_indices(
+                                r1i | r2i, k)
 
         return cnt
 
@@ -348,7 +409,8 @@ class Sudoku:
 
             for i1, i2 in pincers_rc:
                 if self.candidates[i1] ^ self.candidates[i2] == candidates:
-                    candidate_to_eliminiate = (self.candidates[i1] & self.candidates[i2]).pop()
+                    candidate_to_eliminiate = (
+                        self.candidates[i1] & self.candidates[i2]).pop()
                     # Intersect positions of pincers
                     r1, c1, _ = position(i1)
                     r2, c2, _ = position(i2)
@@ -357,23 +419,27 @@ class Sudoku:
 
             for i1, i2 in pincers_rb:
                 if self.candidates[i1] ^ self.candidates[i2] == candidates:
-                    candidate_to_eliminiate = (self.candidates[i1] & self.candidates[i2]).pop()
+                    candidate_to_eliminiate = (
+                        self.candidates[i1] & self.candidates[i2]).pop()
                     r1, _, b1 = position(i1)
                     r2, _, b2 = position(i2)
                     # Remove candidates from the same row of the other pincer box.
                     cnt += self.eliminate_candidates_of_indices(
-                        set(query_indices(r=r1 % 3, b=b2)) | set(query_indices(r=r2 % 3, b=b1)),
+                        set(query_indices(r=r1 % 3, b=b2)) | set(
+                            query_indices(r=r2 % 3, b=b1)),
                         candidate_to_eliminiate
                     )
 
             for i1, i2 in pincers_cb:
                 if self.candidates[i1] ^ self.candidates[i2] == candidates:
-                    candidate_to_eliminiate = (self.candidates[i1] & self.candidates[i2]).pop()
+                    candidate_to_eliminiate = (
+                        self.candidates[i1] & self.candidates[i2]).pop()
                     _, c1, b1 = position(i1)
                     _, c2, b2 = position(i2)
                     # Remove candidates from the same column of the other pincer box.
                     cnt += self.eliminate_candidates_of_indices(
-                        set(query_indices(c=c1 % 3, b=b2)) | set(query_indices(c=c2 % 3, b=b1)),
+                        set(query_indices(c=c1 % 3, b=b2)) | set(
+                            query_indices(c=c2 % 3, b=b1)),
                         candidate_to_eliminiate
                     )
 
@@ -382,10 +448,11 @@ class Sudoku:
     def eliminate_with_all_techniques(self):
         elim_cnt = 0
         elim_cnt += self.eliminate_pointing_pair()
+        elim_cnt += self.eliminate_box_line_intersection()
         elim_cnt += self.eliminate_naked_subsets()
         elim_cnt += self.eliminate_hidden_subsets()
         elim_cnt += self.eliminate_x_wings()
-        elim_cnt += self.eliminate_y_wings()
+        # elim_cnt += self.eliminate_y_wings()
         if elim_cnt > 0:
             elim_cnt += self.eliminate_with_all_techniques()
         return elim_cnt
@@ -467,7 +534,8 @@ class Sudoku:
 
     def display_candidates(self):
         def display_set(i: int):
-            print("".join(str(n) for n in self.candidates[i]).center(10), end=" ")
+            print("".join(str(n)
+                  for n in self.candidates[i]).center(10), end=" ")
         for r1 in range(3):
             for r2 in range(3):
                 r = r1 * 3 + r2

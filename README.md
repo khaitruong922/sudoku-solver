@@ -6,6 +6,7 @@ An attempt to build a Sudoku algorithm using elimination techniques (no backtrac
 
 - Hidden Single
 - Pointing Pair
+- Box-Line Reduction
 - Naked Subset
 - Hidden Subset
 - X-Wing

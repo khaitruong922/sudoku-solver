@@ -5,6 +5,20 @@ from src.sudoku import Sudoku
 """
 
 
+def sudoku_box_line_reduction():
+    return Sudoku([
+        0, 1, 6, 0, 0, 7, 8, 0, 3,
+        0, 9, 0, 8, 0, 0, 0, 0, 0,
+        8, 7, 0, 0, 0, 1, 0, 6, 0,
+        0, 4, 8, 0, 0, 0, 3, 0, 0,
+        6, 5, 0, 0, 0, 9, 0, 8, 2,
+        0, 3, 9, 0, 0, 0, 6, 5, 0,
+        0, 6, 0, 9, 0, 0, 0, 2, 0,
+        0, 8, 0, 0, 0, 2, 9, 3, 6,
+        9, 2, 4, 6, 0, 0, 5, 1, 0,
+    ], name="Sudoku Box Line Reduction")
+
+
 def sudoku_x_wing():
     return Sudoku([
         6, 0, 0, 0, 9, 0, 0, 0, 7,
