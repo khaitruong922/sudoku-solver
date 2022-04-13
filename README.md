@@ -11,6 +11,8 @@ An attempt to build a Sudoku algorithm using elimination techniques (no backtrac
 - Hidden Subset
 - X-Wing
 - Y-Wing
+- Swordfish
+- Jellyfish
 
 More techniques will be implemented in the future.
 

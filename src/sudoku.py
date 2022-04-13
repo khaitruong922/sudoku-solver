@@ -140,7 +140,7 @@ class Sudoku:
                 d[n] = d.get(n, 0) + 1
         return d
 
-    def eliminate_pointing_pair(self) -> int:
+    def pointing_pair(self) -> int:
         """
             For each column in each box, check if they have numbers that does not belong to other columns in the box,
             then eliminate candidates of that number in that column of other boxes.
@@ -177,7 +177,7 @@ class Sudoku:
                             other_cb_indices, k)
         return cnt
 
-    def eliminate_box_line_intersection(self) -> int:
+    def box_line_reduction(self) -> int:
         """
             For each column, if there is a pair or triple in the same box, eliminate that candidate from the rest of the box.
 
@@ -217,7 +217,7 @@ class Sudoku:
 
         return cnt
 
-    def eliminate_hidden_subsets(self) -> int:
+    def hidden_subsets(self) -> int:
         """
             For each area (box, column or row), check for each subset of size k from 2 to 4, if it has k candidates that do not belong other cells in the area,
             eliminate all other candidates that are belong to other cells in the area.
@@ -251,7 +251,7 @@ class Sudoku:
 
         return cnt
 
-    def eliminate_naked_subsets(self) -> int:
+    def naked_subsets(self) -> int:
         """
             For each area (box, column or row), check for naked subset of size k from 2 to 4. If it has k candidates, then eliminate those candidates from other cells in the area.
         """
@@ -281,25 +281,31 @@ class Sudoku:
 
         return cnt
 
-    def eliminate_x_wings(self, n=2) -> int:
+    def x_wing(self, n=2) -> int:
         """
             Detect x-wing in row or column then eliminate that candidate from intersecting cells.
         """
         cnt = 0
         # Detect x-wing in rows
-        combs = list(combinations(range(9), n))
         for x in range(1, 10):
+            valid_rows = []
+
+            for r in range(9):
+                candidate_counts = self.count_candidates(row_indices(r))
+                if not 2 <= candidate_counts.get(x, 0) <= n:
+                    continue
+                valid_rows.append(r)
+
+            if len(valid_rows) < n:
+                continue
+
+            combs = list(combinations(valid_rows, n))
+
             for rows in combs:
                 indices = set()
-                skip = False
                 for r in rows:
                     ri = set(i for i in row_indices(r) if x in self.candidates[i])
                     indices.update(ri)
-                    if not 2 <= len(ri) <= n:
-                        skip = True
-                        break
-                if skip:
-                    continue
                 columns = set(column_of(i) for i in indices)
                 if len(columns) == n:
                     for c in columns:
@@ -308,17 +314,24 @@ class Sudoku:
 
         # Detect x-wing in columns
         for x in range(1, 10):
+            valid_columns = []
+
+            for c in range(9):
+                candidate_counts = self.count_candidates(column_indices(c))
+                if not 2 <= candidate_counts.get(x, 0) <= n:
+                    continue
+                valid_columns.append(c)
+
+            if len(valid_columns) < n:
+                continue
+
+            combs = list(combinations(valid_columns, n))
+
             for columns in combs:
                 indices = set()
-                skip = False
                 for c in columns:
                     ci = set(i for i in column_indices(c) if x in self.candidates[i])
                     indices.update(ci)
-                    if not 2 <= len(ci) <= n:
-                        skip = True
-                        break
-                if skip:
-                    continue
                 rows = set(row_of(i) for i in indices)
                 if len(rows) == n:
                     for r in rows:
@@ -326,7 +339,7 @@ class Sudoku:
                         cnt += self.eliminate_candidates_of_indices(_ri, x)
         return cnt
 
-    def eliminate_y_wings(self) -> int:
+    def y_wing(self) -> int:
         cnt = 0
         for i in range(81):
             if self.cells[i] != 0:
@@ -428,25 +441,41 @@ class Sudoku:
 
         return cnt
 
-    def eliminate_using_all_techniques(self) -> int:
-        elim_cnt = 0
-        elim_cnt += self.eliminate_pointing_pair()
-        elim_cnt += self.eliminate_box_line_intersection()
-        elim_cnt += self.eliminate_naked_subsets()
-        elim_cnt += self.eliminate_hidden_subsets()
-        elim_cnt += self.eliminate_x_wings()
-        elim_cnt += self.eliminate_y_wings()
-        if elim_cnt > 0:
-            elim_cnt += self.eliminate_using_all_techniques()
-        return elim_cnt
+    def swordfish(self) -> int:
+        """
+            Similar to X-Wing, but checks for 3 rows or 3 columns.
+        """
+        return self.x_wing(3)
 
-    def solve(self, compute_candidates=True) -> int:
-        if compute_candidates:
-            self.compute_candidates()
-        self.eliminate_using_all_techniques()
-        cnt = self.solve_hidden_singles()
+    def jellyfish(self) -> int:
+        """
+            Similar to X-Wing, but checks for 4 rows or 4 columns.
+        """
+        return self.x_wing(4)
+
+    def eliminate_using_all_techniques(self) -> int:
+        cnt = 0
+        cnt += self.pointing_pair()
+        cnt += self.box_line_reduction()
+        cnt += self.naked_subsets()
+        cnt += self.hidden_subsets()
+        cnt += self.y_wing()
+        cnt += self.x_wing()
+        cnt += self.swordfish()
+        cnt += self.jellyfish()
         if cnt > 0:
-            cnt += self.solve(compute_candidates=False)
+            cnt += self.eliminate_using_all_techniques()
+        return cnt
+
+    def solve(self, is_recursive=False) -> int:
+        cnt = 0
+        if not is_recursive:
+            self.compute_candidates()
+            cnt += self.solve_hidden_singles()
+        self.eliminate_using_all_techniques()
+        cnt += self.solve_hidden_singles()
+        if cnt > 0:
+            cnt += self.solve(is_recursive=True)
         return cnt
 
     def solve_and_display(self) -> Sudoku:

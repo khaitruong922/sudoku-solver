@@ -16,3 +16,9 @@ class TestTechnique:
 
     def test_sudoku_box_line_reduction(self):
         assert_solved(sudoku_box_line_reduction())
+
+    def test_sudoku_swordfish(self):
+        assert_solved(sudoku_swordfish())
+
+    def test_sudoku_jellyfish(self):
+        assert_solved(sudoku_jellyfish())
