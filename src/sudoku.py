@@ -109,14 +109,11 @@ class Sudoku:
 
             cnt = 0
             for i in indices:
-                if self.cells[i] != 0:
-                    continue
                 candidates = set(self.candidates[i])
 
-                # Check if it has a unique candidate in the box
+                # Check if it has a unique candidate in the area
                 if len(candidates) > 1:
-                    other_sets = [
-                        s for s in candidates_sets if s is not self.candidates[i]] or [set()]
+                    other_sets = [s for s in candidates_sets if s is not self.candidates[i]] or [set()]
                     other_candidates = set.union(*other_sets)
                     candidates -= other_candidates
 
@@ -131,6 +128,9 @@ class Sudoku:
             cnt += solve_hidden_singles_of_indices(box_indices(i))
             cnt += solve_hidden_singles_of_indices(row_indices(i))
             cnt += solve_hidden_singles_of_indices(column_indices(i))
+
+        if cnt > 0:
+            cnt += self.solve_hidden_singles()
 
         return cnt
 
@@ -399,6 +399,9 @@ class Sudoku:
             for _r in range(0, 9):
                 _i = cell_index(_r, c)
                 _candidates = self.candidates[_i]
+                _b = box_of_i(_i)
+                if b == _b:
+                    continue
                 if len(_candidates) != 2:
                     continue
                 # Take if there is one candidate in common
@@ -409,6 +412,9 @@ class Sudoku:
             for _c in range(0, 9):
                 _i = cell_index(r, _c)
                 _candidates = self.candidates[_i]
+                _b = box_of_i(_i)
+                if b == _b:
+                    continue
                 if len(_candidates) != 2:
                     continue
                 # Take if there is one candidate in common
