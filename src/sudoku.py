@@ -1,9 +1,11 @@
 from __future__ import annotations
+
 from itertools import combinations, product
-from typing import Dict, Iterable, List, Set
 from timeit import default_timer as timer
-from src.util import *
+from typing import Dict, Iterable, List, Set
+
 from src.exceptions import InvalidCellValue, InvalidSudoku
+from src.util import *
 
 
 class Sudoku:
@@ -395,30 +397,22 @@ class Sudoku:
 
             # Check for pincers in column
             for _r in range(0, 9):
-                _b = box_of_rc(_r, c)
-                # Skip if the two cells are in the same box
-                if _b == b:
-                    continue
                 _i = cell_index(_r, c)
-                other_candidates = self.candidates[_i]
-                if len(other_candidates) != 2:
+                _candidates = self.candidates[_i]
+                if len(_candidates) != 2:
                     continue
                 # Take if there is one candidate in common
-                if len(other_candidates & candidates) == 1:
+                if len(_candidates & candidates) == 1:
                     pincers_column.append(_i)
 
             # Check for pincers in row
             for _c in range(0, 9):
-                _b = box_of_rc(r, _c)
-                # Skip if the two cells are in the same box
-                if _b == b:
-                    continue
                 _i = cell_index(r, _c)
-                other_candidates = self.candidates[_i]
-                if len(other_candidates) != 2:
+                _candidates = self.candidates[_i]
+                if len(_candidates) != 2:
                     continue
                 # Take if there is one candidate in common
-                if len(other_candidates & candidates) == 1:
+                if len(_candidates & candidates) == 1:
                     pincers_row.append(_i)
 
             # Check for pincers in box
@@ -429,11 +423,11 @@ class Sudoku:
                         continue
 
                     _i = cell_index(_r, _c)
-                    other_candidates = self.candidates[_i]
-                    if len(other_candidates) != 2:
+                    _candidates = self.candidates[_i]
+                    if len(_candidates) != 2:
                         continue
                     # Take if there is one candidate in common
-                    if len(other_candidates & candidates) == 1:
+                    if len(_candidates & candidates) == 1:
                         pincers_box.append(_i)
 
             pincers_rc = product(pincers_column, pincers_row)
@@ -492,6 +486,94 @@ class Sudoku:
         """
         return self.x_wing(4)
 
+    def xyz_wing(self) -> int:
+        cnt = 0
+        for i in range(81):
+            if self.cells[i] != 0:
+                continue
+            candidates = self.candidates[i]
+            if len(candidates) != 3:
+                continue
+            # Assume that current cell is pivot of xyz-wing
+            r, c, b = position(i)
+
+            pincers_column = []
+            pincers_row = []
+            pincers_box = []
+
+            # Check for pincers in column
+            for _r in range(0, 9):
+                _i = cell_index(_r, c)
+                _candidates = self.candidates[_i]
+                _b = box_of_i(_i)
+                if _b == b:
+                    continue
+                if len(_candidates) != 2:
+                    continue
+                # Take if there is two candidates in common
+                if len(_candidates & candidates) == 2:
+                    pincers_column.append(_i)
+
+            # Check for pincers in row
+            for _c in range(0, 9):
+                _i = cell_index(r, _c)
+                _candidates = self.candidates[_i]
+                _b = box_of_i(_i)
+                if _b == b:
+                    continue
+                if len(_candidates) != 2:
+                    continue
+                # Take if there is two candidates in common
+                if len(_candidates & candidates) == 2:
+                    pincers_row.append(_i)
+
+            # Check for pincers in box
+            for _r in range(r // 3 * 3, r // 3 * 3 + 3):
+                for _c in range(c // 3 * 3, c // 3 * 3 + 3):
+                    if _r == r and _c == c:
+                        continue
+                    _i = cell_index(_r, _c)
+                    _candidates = self.candidates[_i]
+                    if len(_candidates) != 2:
+                        continue
+                    # Take if there is two candidate in common
+                    if len(_candidates & candidates) == 2:
+                        pincers_box.append(_i)
+
+            pincers_rb = product(pincers_row, pincers_box)
+            pincers_cb = product(pincers_column, pincers_box)
+
+            cnt = 0
+
+            for ir, ib in pincers_rb:
+                if self.candidates[ir] | self.candidates[ib] == candidates:
+                    candidate_to_eliminiate = (self.candidates[ir] & self.candidates[ib]).pop()
+                    rir = row_of(ir)
+                    rib = row_of(ib)
+                    # Exception: 2 pincers and pivot in the same row
+                    if rir == rib:
+                        continue
+                    print(f"xyz-wing: Eliminate {candidate_to_eliminiate} from row {rir} and box {b}")
+                    # Remove the common candidate in the same row and same box of the pivot
+                    cnt += self.eliminate_candidates_of_indices(
+                        set(query_indices(r=r % 3, b=b)) - {i},
+                        candidate_to_eliminiate
+                    )
+
+            for ic, ib in pincers_cb:
+                if self.candidates[ic] | self.candidates[ib] == candidates:
+                    candidate_to_eliminiate = (self.candidates[ic] & self.candidates[ib]).pop()
+                    # Exception: 2 pincers and pivot in the same column
+                    if column_of(ic) == column_of(ib):
+                        continue
+                    # Remove the common candidate in the same column and same box of the pivot
+                    cnt += self.eliminate_candidates_of_indices(
+                        set(query_indices(c=c % 3, b=b)) - {i},
+                        candidate_to_eliminiate
+                    )
+
+        return cnt
+
     def eliminate_using_all_techniques(self) -> int:
         cnt = 0
         cnt += self.pointing_pair()
@@ -501,6 +583,7 @@ class Sudoku:
         cnt += self.hidden_subsets()
         cnt += self.y_wing()
         cnt += self.x_wing()
+        cnt += self.xyz_wing()
         cnt += self.swordfish()
         cnt += self.jellyfish()
         if cnt > 0:

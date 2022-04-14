@@ -25,3 +25,6 @@ class TestTechnique:
 
     def test_sudoku_jellyfish(self):
         assert_solved(sudoku_jellyfish())
+
+    def test_sudoku_xyz_wing(self):
+        assert_solved(sudoku_xyz_wing())

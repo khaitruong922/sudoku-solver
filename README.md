@@ -14,6 +14,7 @@ An attempt to build a Sudoku algorithm using elimination techniques (no backtrac
 - Y-Wing
 - Swordfish
 - Jellyfish
+- XYZ-Wing
 
 More techniques will be implemented in the future.
 
