@@ -1,5 +1,6 @@
 import pytest
-from src.exceptions import InvalidSudoku, InvalidCellValue
+
+from src.exceptions import InvalidCellValue, InvalidSudoku
 from src.sudoku import Sudoku, position
 
 
